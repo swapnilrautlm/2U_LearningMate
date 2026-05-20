@@ -39,8 +39,10 @@ body {
 .lm-logo { height: 32px; width: auto; display:block; }
 .twou-logo { display:block; width: 36px; height: 36px; }
 
-/* Top-level tab bar */
-.tabbar { background: var(--brand-black); border-bottom: 4px solid var(--brand-yellow); }
+/* Top-level tab bar — pinned to top of viewport */
+.tabbar { background: var(--brand-black); border-bottom: 4px solid var(--brand-yellow);
+  position: sticky; top: 0; z-index: 90;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 .tabbar-inner { max-width: 1480px; margin: 0 auto; padding: 0 32px;
   display: flex; gap: 4px; }
 .tab-btn-top {
@@ -186,6 +188,7 @@ h2 + .h2-sub { color: var(--ink-3); margin: 0 0 16px; font-size: 13px; }
 }
 .sheet-table thead th:first-child { background: #B8D4F0; text-align: left; padding-left: 14px; }
 .sheet-table thead th.col-total { background: #1376D4; color: #fff; }
+.sheet-table thead th.col-cy2026 { background: #FECF48; color: var(--brand-black); }
 .sheet-table thead th.col-2027  { background: #6F42C1; color: #fff; }
 .sheet-table tbody td {
   padding: 8px 10px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
@@ -196,6 +199,7 @@ h2 + .h2-sub { color: var(--ink-3); margin: 0 0 16px; font-size: 13px; }
 .sheet-table tbody td.zero { color: #B7BCC4; }
 .sheet-table tbody td.invoiced { background: #DDF3E5; color: var(--green-strong); font-weight: 600; }
 .sheet-table tbody td.col-total { background: #EAF3FC; font-weight: 700; color: var(--brand-blue-700); }
+.sheet-table tbody td.col-cy2026 { background: #FFF6D6; font-weight: 700; color: #6E5300; }
 .sheet-table tbody td.col-2027  { background: #F0EAFB; font-weight: 700; color: #5C36A8; }
 .sheet-table tbody tr.totalM-row td { background: #EAF3FC; font-weight: 700; color: var(--brand-blue-700);
   border-top: 2px solid var(--brand-blue); }
@@ -448,20 +452,41 @@ footer .tag { display:inline-block; background: var(--brand-yellow); color: var(
     </section>
   </div>
 
+  <div class="chart-grid-2">
+    <section class="card">
+      <h2><span class="num">3</span>Pipeline by Product &amp; Confidence</h2>
+      <p class="h2-sub">Total pipeline split by product line (Degree vs Exec Ed) and layered by confidence.</p>
+      <div class="chart-box tall"><canvas id="prodConfChart"></canvas></div>
+    </section>
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2><span class="num">4</span><span id="prodTrend-title">Monthly Pipeline by Product</span></h2>
+          <p class="h2-sub" id="prodTrend-sub">Side-by-side bars showing how each product line contributes per month.</p>
+        </div>
+        <div class="toggle-wrap inline" role="tablist" aria-label="Product trend toggle">
+          <button class="toggle-btn prod-toggle" role="tab" aria-selected="true"  data-view="monthly">Monthly view</button>
+          <button class="toggle-btn prod-toggle" role="tab" aria-selected="false" data-view="quarterly">Quarterly view</button>
+        </div>
+      </div>
+      <div class="chart-box tall"><canvas id="prodTrendChart"></canvas></div>
+    </section>
+  </div>
+
   <section class="card">
-    <h2><span class="num">3</span>Pipeline — Monthly Table by Confidence</h2>
+    <h2><span class="num">5</span>Pipeline — Monthly Table by Confidence</h2>
     <p class="h2-sub">Allocated revenue per confidence band. CY2027 column collects all 2027 spillover. Excludes special projects without a costing model.</p>
     <div class="sheet-wrap"><table class="sheet-table" id="pipeMonthlyTable"></table></div>
   </section>
 
   <section class="card">
-    <h2><span class="num">4</span>Pipeline — Quarterly Table by Confidence</h2>
+    <h2><span class="num">6</span>Pipeline — Quarterly Table by Confidence</h2>
     <p class="h2-sub">Same data rolled up to quarters (only Q2-Q4 2026 + CY2027 since pipeline opens in May).</p>
     <div class="sheet-wrap"><table class="sheet-table" id="pipeQuarterlyTable"></table></div>
   </section>
 
   <section class="card">
-    <h2><span class="num">5</span>Special Projects — Costing TBD ("No Model Found")</h2>
+    <h2><span class="num">7</span>Special Projects — Costing TBD ("No Model Found")</h2>
     <p class="h2-sub">17 special projects in the pipeline that need a costing model before they can be allocated. Grouped here by confidence so finance can prioritise pricing.</p>
     <table class="nmf-table" id="nmfTable"></table>
   </section>
@@ -583,6 +608,32 @@ const PIPELINE_QUARTERLY = {
   mid:  [ 1170,  17112,  12732,   7002],
   low:  [82435, 472958, 473764, 275762],
 };
+
+/* Pipeline by Product × Confidence (priced rows only) */
+/* Totals across all dates (CY2026 + CY2027) */
+const PIPELINE_PRODUCT_CONF_TOTAL = {
+  'Degree':  { high: 43834, mid: 30215, low: 600977 },
+  'Exec Ed': { high: 48227, mid:  7803, low: 703941 },
+};
+
+/* Monthly totals by product, combined across confidence
+   Indices: May-2026 .. Dec-2026 (8 months) then CY2027 */
+const PIPELINE_PRODUCT_MONTHLY = {
+  'Degree':  [    0, 25591,  43473,  71013,  84364,  82716,  72977,  68329, 226563],
+  'Exec Ed': [17368, 62612, 104893, 113566, 113275, 122435, 101092,  61668,  63060],
+};
+
+/* Quarterly totals by product, combined across confidence
+   Indices: Q2-2026, Q3-2026, Q4-2026, CY2027 */
+const PIPELINE_PRODUCT_QUARTERLY = {
+  'Degree':  [25591, 198849, 224022, 226562],
+  'Exec Ed': [79981, 331734, 285196,  63060],
+};
+
+const PRODUCTS = [
+  { key:'Degree',  label:'Degree',  color:'#1376D4' },
+  { key:'Exec Ed', label:'Exec Ed', color:'#FECF48' },
+];
 
 /* No Model Found special projects */
 const NMF_PROJECTS = [
@@ -775,8 +826,9 @@ document.querySelectorAll('.firm-toggle').forEach(btn => {
 /* ============================================================
  * PIPELINE TAB
  * ============================================================ */
-let pipeTrendChart, pipeMixChart;
+let pipeTrendChart, pipeMixChart, prodConfChart, prodTrendChart;
 let pipeView = 'monthly';
+let prodView = 'monthly';
 
 function buildPipeTrend(){
   const ctx = document.getElementById('pipeTrendChart');
@@ -834,59 +886,171 @@ function buildPipeMix(){
   });
 }
 
+/* Stacked bar: Pipeline by Product × Confidence (totals) */
+function buildProdConfChart(){
+  const ctx = document.getElementById('prodConfChart');
+  const datasets = CONF_BUCKETS.map(b => ({
+    label: b.label,
+    data: PRODUCTS.map(p => PIPELINE_PRODUCT_CONF_TOTAL[p.key][b.key]),
+    backgroundColor: b.color, borderColor:'#fff', borderWidth:0.5, stack:'p'
+  }));
+  prodConfChart = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: PRODUCTS.map(p => p.label), datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins:{
+        legend:{position:'bottom', labels:{boxWidth:14, font:{size:12}}},
+        tooltip:{...commonTooltip(),
+          callbacks:{ label: c => {
+            const v = (c.parsed && c.parsed.y !== undefined) ? c.parsed.y : c.parsed;
+            return `${c.dataset.label}: ${fmtMoney(v)}`;
+          },
+          footer: items => {
+            const tot = items.reduce((s,x) => {
+              const v = (x.parsed && x.parsed.y !== undefined) ? x.parsed.y : x.parsed;
+              return s + (v || 0);
+            }, 0);
+            return 'Product total: ' + fmtMoney(tot);
+          }}
+        },
+        datalabels:{
+          display: c => {
+            const v = c.dataset.data[c.dataIndex];
+            return v > 30000;
+          },
+          color:'#fff', font:{weight:800, size:11},
+          formatter: v => fmtShort(v)
+        }
+      },
+      scales:{
+        x:{stacked:true, grid:{display:false}, ticks:{font:{size:13, weight:700}}},
+        y:{stacked:true, beginAtZero:true,
+          ticks:{callback:v=>fmtShort(v), font:{size:11}}, grid:{color:'#E5E8EC'}}
+      }
+    }
+  });
+}
+
+/* Grouped bar: Monthly/Quarterly pipeline by Product */
+function buildProdTrendChart(){
+  const ctx = document.getElementById('prodTrendChart');
+  const isMonthly = prodView === 'monthly';
+  const labels = isMonthly ? PIPE_PERIOD_LABELS_MONTHLY : PIPE_PERIOD_LABELS_QUARTERLY;
+  const src = isMonthly ? PIPELINE_PRODUCT_MONTHLY : PIPELINE_PRODUCT_QUARTERLY;
+  const datasets = PRODUCTS.map(p => ({
+    label: p.label, data: src[p.key],
+    backgroundColor: p.color, borderColor: '#fff', borderWidth:1,
+    borderRadius: 4, maxBarThickness: 36
+  }));
+  prodTrendChart = new Chart(ctx, {
+    type:'bar', data:{ labels, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins:{
+        legend:{position:'bottom', labels:{boxWidth:14, font:{size:12}}},
+        tooltip: commonTooltip(),
+      },
+      scales:{
+        x:{grid:{display:false}, ticks:{font:{size:11}}},
+        y:{beginAtZero:true, ticks:{callback:v=>fmtShort(v), font:{size:11}}, grid:{color:'#E5E8EC'}}
+      }
+    }
+  });
+}
+
+function renderProdTrend(){
+  if (prodTrendChart) prodTrendChart.destroy();
+  buildProdTrendChart();
+  const isMonthly = prodView === 'monthly';
+  document.getElementById('prodTrend-title').textContent = isMonthly ? 'Monthly Pipeline by Product' : 'Quarterly Pipeline by Product';
+  document.getElementById('prodTrend-sub').textContent = isMonthly
+    ? 'Side-by-side bars showing how each product line contributes per month.'
+    : 'Same data rolled up to quarters.';
+}
+
+document.querySelectorAll('.prod-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.prod-toggle').forEach(b => b.setAttribute('aria-selected', 'false'));
+    btn.setAttribute('aria-selected', 'true');
+    prodView = btn.dataset.view;
+    renderProdTrend();
+  });
+});
+
 function buildPipeMonthlyTable(){
   const t = document.getElementById('pipeMonthlyTable');
-  const cols = PIPE_PERIOD_LABELS_MONTHLY;
+  // Period columns: May-2026..Dec-2026 (8 months), then CY2026 subtotal, then CY2027
+  const monthCols = PIPE_PERIOD_LABELS_MONTHLY.slice(0, 8); // May-Dec 2026
   let html = '<thead><tr><th>Confidence</th>';
-  cols.forEach(c => html += `<th class="${c==='CY2027'?'col-2027':''}">${c}</th>`);
+  monthCols.forEach(c => html += `<th>${c}</th>`);
+  html += '<th class="col-cy2026">CY2026</th>';
+  html += '<th class="col-2027">CY2027</th>';
   html += '<th class="col-total">Total</th></tr></thead><tbody>';
 
   CONF_BUCKETS.forEach(b => {
-    html += `<tr class="conf-${b.key}"><td class="row-label"><span class="conf-pill ${b.key}">${b.label}</span></td>`;
     const row = PIPELINE_MONTHLY[b.key];
-    row.forEach((v, i) => {
-      const isLast = i === row.length - 1;
-      html += `<td class="${isLast?'col-2027':''}">${v===0 ? '<span class="zero">$0</span>' : fmtMoney(v)}</td>`;
+    const cy2026 = row.slice(0, 8).reduce((a,c)=>a+c, 0);
+    const cy2027 = row[8];
+    html += `<tr class="conf-${b.key}"><td class="row-label"><span class="conf-pill ${b.key}">${b.label}</span></td>`;
+    row.slice(0, 8).forEach(v => {
+      html += `<td>${v===0 ? '<span class="zero">$0</span>' : fmtMoney(v)}</td>`;
     });
-    html += `<td class="col-total">${fmtMoney(row.reduce((a,c)=>a+c, 0))}</td></tr>`;
+    html += `<td class="col-cy2026">${fmtMoney(cy2026)}</td>`;
+    html += `<td class="col-2027">${fmtMoney(cy2027)}</td>`;
+    html += `<td class="col-total">${fmtMoney(cy2026 + cy2027)}</td></tr>`;
   });
 
   // Total row
   html += '<tr class="totalM-row"><td class="row-label">Total Pipeline</td>';
-  cols.forEach((c, i) => {
+  monthCols.forEach((c, i) => {
     const s = CONF_BUCKETS.reduce((s, b) => s + PIPELINE_MONTHLY[b.key][i], 0);
     html += `<td>${fmtMoney(s)}</td>`;
   });
-  const grand = CONF_BUCKETS.reduce((s, b) => s + PIPELINE_MONTHLY[b.key].reduce((a,c)=>a+c,0), 0);
-  html += `<td>${fmtMoney(grand)}</td></tr>`;
+  const totalCY2026 = CONF_BUCKETS.reduce((s, b) => s + PIPELINE_MONTHLY[b.key].slice(0, 8).reduce((a,c)=>a+c, 0), 0);
+  const totalCY2027 = CONF_BUCKETS.reduce((s, b) => s + PIPELINE_MONTHLY[b.key][8], 0);
+  html += `<td>${fmtMoney(totalCY2026)}</td>`;
+  html += `<td>${fmtMoney(totalCY2027)}</td>`;
+  html += `<td>${fmtMoney(totalCY2026 + totalCY2027)}</td></tr>`;
   html += '</tbody>';
   t.innerHTML = html;
 }
 
 function buildPipeQuarterlyTable(){
   const t = document.getElementById('pipeQuarterlyTable');
-  const cols = PIPE_PERIOD_LABELS_QUARTERLY;
+  // Quarterly columns: Q2-2026, Q3-2026, Q4-2026 (CY2026 subtotal), CY2027
+  const qCols = PIPE_PERIOD_LABELS_QUARTERLY.slice(0, 3); // Q2,Q3,Q4 2026
   let html = '<thead><tr><th>Confidence</th>';
-  cols.forEach(c => html += `<th class="${c==='CY2027'?'col-2027':''}">${c}</th>`);
+  qCols.forEach(c => html += `<th>${c}</th>`);
+  html += '<th class="col-cy2026">CY2026</th>';
+  html += '<th class="col-2027">CY2027</th>';
   html += '<th class="col-total">Total</th></tr></thead><tbody>';
 
   CONF_BUCKETS.forEach(b => {
-    html += `<tr class="conf-${b.key}"><td class="row-label"><span class="conf-pill ${b.key}">${b.label}</span></td>`;
     const row = PIPELINE_QUARTERLY[b.key];
-    row.forEach((v, i) => {
-      const isLast = i === row.length - 1;
-      html += `<td class="${isLast?'col-2027':''}">${v===0 ? '<span class="zero">$0</span>' : fmtMoney(v)}</td>`;
+    const cy2026 = row.slice(0, 3).reduce((a,c)=>a+c, 0);
+    const cy2027 = row[3];
+    html += `<tr class="conf-${b.key}"><td class="row-label"><span class="conf-pill ${b.key}">${b.label}</span></td>`;
+    row.slice(0, 3).forEach(v => {
+      html += `<td>${v===0 ? '<span class="zero">$0</span>' : fmtMoney(v)}</td>`;
     });
-    html += `<td class="col-total">${fmtMoney(row.reduce((a,c)=>a+c, 0))}</td></tr>`;
+    html += `<td class="col-cy2026">${fmtMoney(cy2026)}</td>`;
+    html += `<td class="col-2027">${fmtMoney(cy2027)}</td>`;
+    html += `<td class="col-total">${fmtMoney(cy2026 + cy2027)}</td></tr>`;
   });
 
   html += '<tr class="totalM-row"><td class="row-label">Total Pipeline</td>';
-  cols.forEach((c, i) => {
+  qCols.forEach((c, i) => {
     const s = CONF_BUCKETS.reduce((s, b) => s + PIPELINE_QUARTERLY[b.key][i], 0);
     html += `<td>${fmtMoney(s)}</td>`;
   });
-  const grand = CONF_BUCKETS.reduce((s, b) => s + PIPELINE_QUARTERLY[b.key].reduce((a,c)=>a+c,0), 0);
-  html += `<td>${fmtMoney(grand)}</td></tr>`;
+  const totalCY2026 = CONF_BUCKETS.reduce((s, b) => s + PIPELINE_QUARTERLY[b.key].slice(0, 3).reduce((a,c)=>a+c, 0), 0);
+  const totalCY2027 = CONF_BUCKETS.reduce((s, b) => s + PIPELINE_QUARTERLY[b.key][3], 0);
+  html += `<td>${fmtMoney(totalCY2026)}</td>`;
+  html += `<td>${fmtMoney(totalCY2027)}</td>`;
+  html += `<td>${fmtMoney(totalCY2026 + totalCY2027)}</td></tr>`;
   html += '</tbody>';
   t.innerHTML = html;
 }
@@ -1078,14 +1242,25 @@ function activateTab(tabKey){
   });
 
   // Lazy-build charts when tab is first opened (Chart.js needs visible canvas)
+  const safeRun = (label, fn) => {
+    try { fn(); } catch (e) { console.error('[' + label + ']', e); }
+  };
   if (tabKey === 'pipeline' && !pipelineBuilt) {
-    buildPipeTrend(); buildPipeMix();
-    buildPipeMonthlyTable(); buildPipeQuarterlyTable(); buildNMFTable();
+    // Tables first — they must never be blocked by a chart error.
+    safeRun('pipeMonthlyTable', buildPipeMonthlyTable);
+    safeRun('pipeQuarterlyTable', buildPipeQuarterlyTable);
+    safeRun('NMFTable', buildNMFTable);
+    safeRun('pipeTrend', buildPipeTrend);
+    safeRun('pipeMix', buildPipeMix);
+    safeRun('prodConf', buildProdConfChart);
+    safeRun('prodTrend', renderProdTrend);
     pipelineBuilt = true;
   }
   if (tabKey === 'combined' && !combinedBuilt) {
-    buildScenarioCards(); buildCombinedTable();
-    buildCombinedDeltaChart(); buildCombinedAnnualChart();
+    safeRun('scenarioCards', buildScenarioCards);
+    safeRun('combinedTable', buildCombinedTable);
+    safeRun('combinedDelta', buildCombinedDeltaChart);
+    safeRun('combinedAnnual', buildCombinedAnnualChart);
     combinedBuilt = true;
   }
 }
