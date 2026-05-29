@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>2U Master EXCO Tracker — PRIMARY TRACKER Analysis · LearningMate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --brand-yellow:#FECF48; --brand-blue:#1376D4; --brand-blue-700:#0F5FAB;
+  --brand-blue-50:#EAF3FC; --brand-black:#080808;
+  --lm-green:#8DC63F; --lm-blue:#1B4F8C;
+  --ink:#080808; --ink-2:#2C2F33; --ink-3:#5A5F66;
+  --line:#E5E8EC; --bg:#FFFFFF; --bg-alt:#F8FAFC;
+  --bg-yellow-soft:#FFF6D6;
+  --radius:12px;
+  --shadow-sm:0 1px 2px rgba(8,8,8,0.04),0 2px 4px rgba(8,8,8,0.04);
+  --shadow-md:0 4px 14px rgba(8,8,8,0.08);
+  --font:"proxima-nova","Proxima Nova","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;} html,body{margin:0;padding:0;}
+body{font-family:var(--font); color:var(--ink); background:var(--bg-alt); line-height:1.55; -webkit-font-smoothing:antialiased; font-size:16px;}
+.topbar{background:#fff; border-bottom:1px solid var(--line);}
+.topbar-inner{max-width:1480px; margin:0 auto; padding:16px 32px; display:flex; align-items:center; justify-content:space-between; gap:24px;}
+.lm-logo{height:32px; width:auto; display:block;}
+.twou-logo{display:block; width:36px; height:36px;}
+.tabbar{background:var(--brand-black); border-bottom:4px solid var(--brand-yellow); position:sticky; top:0; z-index:90;
+  box-shadow:0 2px 8px rgba(8,8,8,0.12);}
+.tabbar-inner{max-width:1480px; margin:0 auto; padding:0 32px; display:flex; gap:4px; align-items:stretch; flex-wrap:wrap;}
+.tab-btn{appearance:none; background:transparent; color:rgba(255,255,255,0.72); border:0; border-bottom:3px solid transparent;
+  padding:12px 18px; font:inherit; font-weight:600; font-size:13.5px; display:inline-flex; align-items:center; gap:8px;
+  letter-spacing:0.02em; cursor:pointer; transition:all .15s ease; margin-bottom:-1px;}
+.tab-btn:hover{color:#fff;}
+.tab-btn[aria-selected="true"]{color:var(--brand-yellow); border-bottom-color:var(--brand-yellow);}
+.tab-btn .tab-count{display:inline-block; margin-left:8px; background:rgba(255,255,255,0.12); color:rgba(255,255,255,0.9);
+  font-size:11px; padding:2px 8px; border-radius:999px; font-weight:700;}
+.tab-btn[aria-selected="true"] .tab-count{background:var(--brand-yellow); color:var(--brand-black);}
+.tab-icon{width:16px; height:16px; flex:0 0 auto;}
+.tab-icon path,.tab-icon circle,.tab-icon rect,.tab-icon line,.tab-icon polyline{stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+.tab-panel{display:none;}
+.tab-panel[data-active="true"]{display:block;}
+.hero{background:radial-gradient(1200px 360px at 88% -10%, rgba(254,207,72,0.35), transparent 60%), linear-gradient(180deg, #fff 0%, var(--bg-alt) 100%); border-bottom:1px solid var(--line);}
+.hero-inner{max-width:1480px; margin:0 auto; padding:36px 32px 32px;}
+.eyebrow{display:inline-flex; align-items:center; gap:8px; background:var(--brand-yellow); color:var(--brand-black);
+  padding:6px 12px; border-radius:999px; font-size:12px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase;}
+.eyebrow .dot{width:6px; height:6px; background:var(--brand-black); border-radius:50%;}
+h1{font-size:34px; line-height:1.15; margin:14px 0 8px; color:var(--brand-black); font-weight:800; letter-spacing:-0.01em;}
+h1 .accent{color:var(--brand-blue);}
+.lede{font-size:16px; color:var(--ink-2); max-width:920px;}
+.meta-row{margin-top:14px; display:flex; flex-wrap:wrap; gap:8px 22px; font-size:13px; color:var(--ink-3);}
+.meta-row span b{color:var(--ink); font-weight:600;}
+.tab-main{max-width:1480px; margin:0 auto; padding:28px 32px 60px;}
+.kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:22px;}
+.kpi{background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px 14px; box-shadow:var(--shadow-sm); position:relative; overflow:hidden;}
+.kpi::before{content:""; position:absolute; top:0; left:0; right:0; height:4px; background:var(--brand-blue);}
+.kpi.alt::before{background:var(--brand-yellow);}
+.kpi.dark::before{background:var(--brand-black);}
+.kpi.green::before{background:#2BAA52;}
+.kpi-label{font-size:11px; font-weight:700; color:var(--ink-3); letter-spacing:0.08em; text-transform:uppercase;}
+.kpi-value{font-size:28px; font-weight:800; color:var(--brand-black); margin:4px 0 2px; letter-spacing:-0.01em;}
+.kpi-sub{font-size:12px; color:var(--ink-3);}
+.kpi-lc{display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;}
+.kpi-lc-pill{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px; letter-spacing:0.04em; border:1px solid transparent;}
+.kpi-lc-pill.high{background:#FBDADA; color:#9C2B2B; border-color:#F5C5C5;}
+.kpi-lc-pill.med{background:#FFE9B5; color:#6E5300; border-color:#F1DC8F;}
+.kpi-lc-pill.low{background:#DDF3E5; color:#176B33; border-color:#BFE3CB;}
+.kpi-lc-pill.blue{background:var(--brand-blue-50); color:var(--brand-blue-700); border-color:#CFE3F8;}
+section.card{background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:26px 28px; margin-bottom:22px; box-shadow:var(--shadow-sm);}
+h2{font-size:21px; font-weight:700; margin:0 0 6px; color:var(--brand-black); display:flex; align-items:center; gap:12px;}
+h2 .num{display:inline-flex; width:28px; height:28px; align-items:center; justify-content:center; background:var(--brand-blue); color:#fff; border-radius:8px; font-size:13px; font-weight:700;}
+h2 + .h2-sub{color:var(--ink-3); margin:0 0 18px; font-size:14px;}
+h3{font-size:16px; font-weight:700; margin:20px 0 8px; color:var(--brand-black);}
+.callout{border-left:4px solid var(--brand-yellow); background:var(--bg-yellow-soft); padding:14px 16px; border-radius:0 10px 10px 0; margin:14px 0; font-size:14px;}
+.callout.blue{border-left-color:var(--brand-blue); background:var(--brand-blue-50);}
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+.grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+@media (max-width:1000px){ .grid-2,.grid-3{grid-template-columns:1fr;} }
+.chart-card{background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px; box-shadow:var(--shadow-sm);}
+.chart-card h3{margin:0 0 4px; font-size:15px;}
+.chart-card .chart-sub{font-size:12px; color:var(--ink-3); margin-bottom:10px;}
+.chart-wrap{position:relative; height:300px;}
+.table-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:var(--radius); background:#fff;}
+table.dtable{width:100%; border-collapse:separate; border-spacing:0; font-size:12.5px;}
+table.dtable thead th{background:var(--brand-black); color:#fff; text-align:left; padding:12px 12px; font-size:10.5px;
+  letter-spacing:0.06em; text-transform:uppercase; font-weight:700; user-select:none; vertical-align:middle;
+  line-height:1.3; border-bottom:2px solid var(--brand-yellow);}
+table.dtable thead th.sortable{cursor:pointer; transition:background .12s;}
+table.dtable thead th.sortable:hover{background:#1c1c1c;}
+table.dtable thead th.num, table.dtable tbody td.num{text-align:right; font-variant-numeric:tabular-nums;}
+table.dtable thead th .sort-ind{display:inline-block; width:12px; margin-left:6px; color:var(--brand-yellow); font-size:10px; font-weight:800;}
+table.dtable tbody td{padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:middle;}
+table.dtable tbody tr:nth-child(even){background:#FBFCFE;}
+table.dtable tbody tr:hover{background:var(--brand-blue-50);}
+.td-name{font-weight:600; color:var(--brand-black);}
+.td-num{text-align:right; font-variant-numeric:tabular-nums; color:var(--ink-2);}
+.progress-bar{height:14px; background:var(--bg-alt); border-radius:999px; position:relative; overflow:hidden; min-width:60px;}
+.progress-bar .done{position:absolute; top:0; left:0; bottom:0; background:linear-gradient(90deg,#2BAA52,#8DC63F); border-radius:999px;}
+.progress-bar .ip{position:absolute; top:0; bottom:0; background:var(--brand-yellow);}
+.progress-bar .nu{position:absolute; top:0; bottom:0; background:#C53D3D;}
+.chip{display:inline-block; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; letter-spacing:0.04em; text-transform:uppercase; white-space:nowrap; line-height:1.6;}
+.chip.impact-high{background:#FBDADA; color:#9C2B2B; border:1px solid #F5C5C5;}
+.chip.impact-med{background:#FFE9B5; color:#6E5300; border:1px solid #F1DC8F;}
+.chip.impact-low{background:#DDF3E5; color:#176B33; border:1px solid #BFE3CB;}
+.chip.comp-book{background:#EDE7F6; color:#5C36A8; border:1px solid #D8C8F0;}
+.chip.comp-video{background:var(--brand-blue-50); color:var(--brand-blue-700); border:1px solid #CFE3F8;}
+.chip.comp-forum{background:#FFF7DA; color:#6E5300; border:1px solid #F1DC8F;}
+.chip.action-remove{background:#FBDADA; color:#9C2B2B; border:1px solid #F5C5C5;}
+.chip.action-replace{background:var(--brand-blue-50); color:var(--brand-blue-700); border:1px solid #CFE3F8;}
+.chip.action-missing{background:#F0EAFB; color:#5C36A8; border:1px solid #D8C8F0;}
+.chip.uni{background:var(--brand-black); color:#fff; border:1px solid var(--brand-black); font-family:ui-monospace,Menlo,Consolas,monospace; font-size:10px; padding:2px 8px;}
+.insight-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px;}
+.insight-card{background:#fff; border:1px solid var(--line); border-radius:10px; padding:16px 18px;}
+.insight-card .ic-label{font-size:10.5px; font-weight:800; color:var(--ink-3); text-transform:uppercase; letter-spacing:0.06em;}
+.insight-card .ic-value{font-size:22px; font-weight:800; color:var(--brand-black); margin-top:4px;}
+.insight-card.alert{border-left:4px solid #C53D3D;}
+.insight-card.warn{border-left:4px solid var(--brand-yellow);}
+.insight-card.good{border-left:4px solid #2BAA52;}
+.insight-card.info{border-left:4px solid var(--brand-blue);}
+.insight-card p{margin:8px 0 0; font-size:13px; color:var(--ink-2);}
+.pivot-toolbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+.pivot-btn{appearance:none; background:#fff; color:var(--ink-2); border:1px solid var(--line); border-radius:8px; padding:8px 14px; font:inherit; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; cursor:pointer;}
+.pivot-btn:hover{background:var(--bg-alt); border-color:var(--ink-3);}
+.pivot-btn.primary{background:var(--brand-blue); color:#fff; border-color:var(--brand-blue);}
+.pivot-table{width:100%; background:#fff; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow-sm);}
+.pivot-head,.pivot-row{display:grid; grid-template-columns: 380px 70px 70px 80px 70px 80px 90px 90px 110px; align-items:center;}
+.pivot-head{background:var(--brand-black); color:#fff; user-select:none;}
+.pivot-head > div{padding:11px 10px; font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em;}
+.pivot-head > div.sortable{cursor:pointer;}
+.pivot-head > div.sortable:hover{background:#1c1c1c;}
+.pivot-head .sort-ind{display:inline-block; width:12px; color:var(--brand-yellow); margin-left:4px; font-size:10px; font-weight:800;}
+.pivot-row{border-top:1px solid var(--line); font-size:13px;}
+.pivot-row:hover{background:var(--brand-blue-50);}
+.pivot-row > div{padding:9px 10px;}
+.pivot-cell.num{text-align:right; font-variant-numeric:tabular-nums; color:var(--ink-2);}
+.pivot-cell.lvl1{font-weight:800; color:var(--brand-black); font-size:14px;}
+.pivot-cell.lvl1 .uni-code{display:inline-block; font-family:ui-monospace,Menlo,Consolas,monospace; background:var(--brand-black); color:#fff; padding:2px 8px; border-radius:6px; font-size:10px; margin-right:10px; vertical-align:middle; letter-spacing:0.04em; font-weight:700;}
+.pivot-cell.lvl2{font-weight:700; color:var(--ink-2); padding-left:48px !important; font-size:13px;}
+.pivot-cell.lvl3{color:var(--ink-2); padding-left:90px !important; font-size:12.5px; font-family:ui-monospace,Menlo,Consolas,monospace;}
+.pivot-row.lvl1{background:#FAFCFE;}
+.pivot-row.lvl1:hover{background:var(--brand-blue-50);}
+.pivot-row.lvl2{background:#fff;}
+.pivot-row.lvl3{background:#fff;}
+.toggle{display:inline-block; width:18px; height:18px; line-height:16px; text-align:center; margin-right:8px; cursor:pointer; user-select:none; color:var(--ink-3); font-weight:700; border-radius:4px; vertical-align:middle;}
+.toggle:hover{background:var(--brand-blue-50); color:var(--brand-blue);}
+.toggle.empty{visibility:hidden;}
+.pivot-bar{height:8px; background:var(--bg-alt); border-radius:999px; position:relative; overflow:hidden; min-width:50px; margin-top:3px;}
+.pivot-bar > span{position:absolute; top:0; left:0; bottom:0; background:linear-gradient(90deg,#2BAA52,#8DC63F); border-radius:999px;}
+.pct-cell{font-weight:700; font-variant-numeric:tabular-nums; color:var(--brand-black); text-align:right;}
+.pct-cell .small{color:var(--ink-3); font-weight:400;}
+.heat-cell{text-align:center; font-weight:700; font-variant-numeric:tabular-nums; border-radius:6px; padding:4px 8px; min-width:40px; display:inline-block; vertical-align:middle; line-height:1.4;}
+.heat-0{background:#F8FAFC; color:#B7BCC4;}
+.heat-low{background:#FFF1F1; color:#9C2B2B;}
+.heat-mid{background:#FBDADA; color:#9C2B2B;}
+.heat-high{background:#C53D3D; color:#fff;}
+.rep-block{background:#fff; border:1px solid var(--line); border-radius:var(--radius); margin-bottom:16px; box-shadow:var(--shadow-sm); overflow:hidden;}
+.rep-head{display:flex; align-items:center; justify-content:space-between; padding:14px 22px; border-bottom:1px solid var(--line); background:linear-gradient(180deg,#fff 0%,#FAFBFD 100%); cursor:pointer; user-select:none;}
+.rep-head:hover{background:#F4F6F9;}
+.rep-title{font-size:16px; font-weight:800; color:var(--brand-black); display:flex; align-items:center; gap:10px;}
+.rep-title .rep-toggle{width:18px; color:var(--ink-3); font-weight:700;}
+.rep-meta{font-size:12px; color:var(--ink-3);}
+.rep-body{padding:14px 22px 18px; display:none;}
+.rep-block[data-open="true"] .rep-body{display:block;}
+.rep-block[data-open="true"] .rep-toggle::before{content:"\25BE";}
+.rep-block:not([data-open="true"]) .rep-toggle::before{content:"\25B8";}
+.bucket-row{display:grid; grid-template-columns:240px 60px 1fr; gap:14px; padding:10px 0; border-bottom:1px solid var(--line); align-items:flex-start;}
+.bucket-row:last-child{border-bottom:0;}
+.bucket-name{font-weight:700; color:var(--brand-black); font-size:13px;}
+.bucket-count{font-size:13px; font-weight:800; color:var(--brand-blue-700); background:var(--brand-blue-50); padding:3px 10px; border-radius:999px; text-align:center; border:1px solid #CFE3F8;}
+.bucket-samples{font-size:12px; color:var(--ink-2);}
+.bucket-samples .sample{padding:6px 8px; background:var(--bg-alt); border-radius:6px; margin-bottom:4px; border-left:3px solid var(--brand-blue);}
+.bucket-samples .sample b{color:var(--brand-black);}
+footer{border-top:1px solid var(--line); margin-top:30px; background:var(--brand-black); color:rgba(255,255,255,0.78);}
+.foot-inner{max-width:1480px; margin:0 auto; padding:22px 32px; display:flex; align-items:center; justify-content:space-between; gap:16px; font-size:13px; flex-wrap:wrap;}
+.foot-inner .tag{color:var(--brand-yellow); font-weight:700; letter-spacing:0.08em;}
+@media (max-width:900px){
+  .kpis{grid-template-columns:repeat(2,1fr);}
+  .insight-grid{grid-template-columns:1fr;}
+  h1{font-size:26px;}
+  .pivot-head,.pivot-row{grid-template-columns: 230px 50px 50px 60px 50px 60px 70px 70px 90px; font-size:11px;}
+  .bucket-row{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand-left">
+      <svg class="lm-logo" viewBox="0 0 320 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LearningMate">
+        <text x="0" y="34" font-family="Inter,'Proxima Nova',sans-serif" font-size="34" font-weight="800" fill="#8DC63F" letter-spacing="-1">Learning</text>
+        <text x="166" y="34" font-family="Inter,'Proxima Nova',sans-serif" font-size="34" font-weight="800" fill="#1B4F8C" letter-spacing="-1">Mate</text>
+        <line x1="2" y1="44" x2="270" y2="44" stroke="#1B4F8C" stroke-width="1" opacity="0.25"/>
+        <text x="2" y="58" font-family="Inter,'Proxima Nova',sans-serif" font-size="11" font-weight="700" fill="#1B4F8C" letter-spacing="3">A STRAIVE COMPANY</text>
+      </svg>
+    </div>
+    <div class="brand-right">
+      <svg class="twou-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="2U Inc">
+        <circle cx="50" cy="50" r="48" fill="#1376D4"/>
+        <path d="M22 38 c0-8 6-14 14-14 c8 0 14 6 14 14 c0 6-4 11-10 14 l-12 8 h22 v8 h-32 v-8 l18-12 c4-2 6-5 6-9 c0-4-3-7-7-7 c-4 0-7 3-7 7 z" fill="#FFFFFF"/>
+        <path d="M55 24 h8 v30 c0 4 3 7 7 7 c4 0 7-3 7-7 v-30 h8 v30 c0 8-7 15-15 15 c-8 0-15-7-15-15 z" fill="#FFFFFF"/>
+        <circle cx="86" cy="74" r="5" fill="none" stroke="#FFFFFF" stroke-width="1"/>
+        <text x="86" y="77" font-family="Arial,sans-serif" font-size="6" fill="#FFFFFF" text-anchor="middle" font-weight="700">R</text>
+      </svg>
+    </div>
+  </div>
+</header>
+<section class="hero">
+  <div class="hero-inner">
+    <span class="eyebrow"><span class="dot"></span>Master EXCO Tracker · UNI-level analysis</span>
+    <h1>PRIMARY TRACKER <span class="accent">— Remediation & Pipeline Snapshot</span></h1>
+    <p class="lede">Rolled up by <b>UNI</b>. Tabs stay pinned at the top while you scroll — scroll up to see the logos.</p>
+    <div class="meta-row">
+      <span>Generated <b>29-May-2026</b></span>
+      <span>Source <b>MASTER EXCO TRACKER · PRIMARY TRACKER</b></span>
+      <span>Rows <b>2,387</b></span>
+      <span>Universities <b>16</b></span>
+    </div>
+  </div>
+</section>
+<nav class="tabbar" role="tablist">
+  <div class="tabbar-inner">
+    <button class="tab-btn" role="tab" aria-selected="true" data-tab="overview">
+      <svg class="tab-icon" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg>
+      <span>Overview</span>
+    </button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-tab="universities">
+      <svg class="tab-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span>Universities</span> <span class="tab-count">16</span>
+    </button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-tab="pivot">
+      <svg class="tab-icon" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="21" y2="12"/><line x1="9" y1="18" x2="21" y2="18"/></svg>
+      <span>Pivot · UNI → TAB → Course</span>
+    </button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-tab="actions">
+      <svg class="tab-icon" viewBox="0 0 24 24"><polyline points="3,17 9,11 13,15 21,7"/><polyline points="14,7 21,7 21,14"/></svg>
+      <span>Action Items</span> <span class="tab-count">262</span>
+    </button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-tab="crosstabs">
+      <svg class="tab-icon" viewBox="0 0 24 24"><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+      <span>Cross-tabs</span>
+    </button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-tab="replace">
+      <svg class="tab-icon" viewBox="0 0 24 24"><polyline points="17,1 21,5 17,9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7,23 3,19 7,15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      <span>Replace With</span> <span class="tab-count">47</span>
+    </button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-tab="priority">
+      <svg class="tab-icon" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="0.5"/></svg>
+      <span>High Priority</span> <span class="tab-count">45</span>
+    </button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-tab="upcoming">
+      <svg class="tab-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+      <span>Upcoming</span> <span class="tab-count">29</span>
+    </button>
+  </div>
+</nav>
+<div class="tab-panel" id="panel-overview" data-active="true"><main class="tab-main">
+<div class="kpis">
+  <div class="kpi"><div class="kpi-label">Rows tracked</div>
+    <div class="kpi-value">2,387</div>
+    <div class="kpi-sub">Components × presentations</div>
+    <div class="kpi-lc"><span class="kpi-lc-pill blue">114 courses</span><span class="kpi-lc-pill low">16 universities</span></div></div>
+  <div class="kpi alt"><div class="kpi-label">Active presentations</div>
+    <div class="kpi-value">137</div>
+    <div class="kpi-sub">Live now · 171 more scheduled</div></div>
+  <div class="kpi dark"><div class="kpi-label">Action items identified</div>
+    <div class="kpi-value">262</div>
+    <div class="kpi-sub">Asset-level remediations</div>
+    <div class="kpi-lc"><span class="kpi-lc-pill high">11 HIGH</span><span class="kpi-lc-pill med">34 MED</span><span class="kpi-lc-pill low">215 LOW</span></div></div>
+  <div class="kpi green"><div class="kpi-label">Change log completion</div>
+    <div class="kpi-value">86%</div>
+    <div class="kpi-sub">536 of 621 actionable rows done</div>
+    <div class="kpi-lc"><span class="kpi-lc-pill med">62 in progress</span><span class="kpi-lc-pill high">23 need update</span></div></div>
+</div>
+
+<div class="grid-2">
+  <div class="chart-card"><h3>Workload by university (UNI)</h3><div class="chart-sub">All rows after rolling TABs up into UNI · top 10</div><div class="chart-wrap"><canvas id="chart-uni-workload"></canvas></div></div>
+  <div class="chart-card"><h3>Remediation status mix</h3><div class="chart-sub">All 2,387 rows</div><div class="chart-wrap"><canvas id="chart-rem-mix"></canvas></div></div>
+</div>
+<div class="grid-2">
+  <div class="chart-card"><h3>Presentation status</h3><div class="chart-sub">Lifecycle of cohorts tracked</div><div class="chart-wrap"><canvas id="chart-pres-status"></canvas></div></div>
+  <div class="chart-card"><h3>Component type split</h3><div class="chart-sub">Book, video, forum</div><div class="chart-wrap"><canvas id="chart-component"></canvas></div></div>
+</div>
+</main></div>
+<div class="tab-panel" id="panel-universities"><main class="tab-main">
+<section class="card">
+  <h2><span class="num">2</span>Universities — workload & progress</h2>
+  <p class="h2-sub">Click any column header to sort. Default: % Done, high → low.</p>
+  <div class="table-wrap"><table class="dtable" id="t-uni"></table></div>
+  <div class="callout blue"><strong>How to read it.</strong> "Actionable" = Remediation Status anything other than "0. Not Applicable" or blank. Empty progress bar = no Change Log activity logged yet.</div>
+</section>
+<div class="grid-2">
+  <div class="chart-card"><h3>Active presentations per UNI</h3><div class="chart-sub">Distinct live cohorts currently in market</div><div class="chart-wrap"><canvas id="chart-active-pres"></canvas></div></div>
+  <div class="chart-card"><h3>Action items per UNI</h3><div class="chart-sub">Components flagged with a recommended action</div><div class="chart-wrap"><canvas id="chart-action-by-uni"></canvas></div></div>
+</div>
+</main></div>
+<div class="tab-panel" id="panel-pivot"><main class="tab-main">
+<section class="card">
+  <h2><span class="num">3</span>Pivot · UNI → TAB → Course Code</h2>
+  <p class="h2-sub">Hierarchical drill-down. Default sort: % Done desc at every level.</p>
+  <div class="pivot-toolbar">
+    <button class="pivot-btn primary" id="pv-expand-all">Expand all</button>
+    <button class="pivot-btn" id="pv-collapse-all">Collapse all</button>
+    <button class="pivot-btn" id="pv-l2-only">Level 1 + 2</button>
+  </div>
+  <div class="pivot-table">
+    <div class="pivot-head" id="pivot-head"></div>
+    <div id="pivot-body"></div>
+  </div>
+</section>
+</main></div>
+<div class="tab-panel" id="panel-actions"><main class="tab-main">
+<section class="card">
+  <h2><span class="num">4</span>Action items by university</h2>
+  <p class="h2-sub">Matrix of action types by university, with HIGH/MEDIUM/LOW impact split. Sort by clicking column headers.</p>
+  <div class="table-wrap"><table class="dtable" id="t-action-matrix"></table></div>
+  <div class="callout"><strong>Pattern.</strong> Oxford carries 151 action items but almost all are LOW-impact <b>Remove</b>. MIT items are mostly <b>Replace</b>. LSE is balanced between Remove and Replace variants.</div>
+</section>
+<div class="grid-2">
+  <div class="chart-card"><h3>Actions by impact level</h3><div class="chart-sub">Stacked · type of work in each impact bucket</div><div class="chart-wrap"><canvas id="chart-impact-action"></canvas></div></div>
+  <div class="chart-card"><h3>Action items by component</h3><div class="chart-sub">Books vs videos vs forums</div><div class="chart-wrap"><canvas id="chart-ai-component"></canvas></div></div>
+</div>
+</main></div>
+<div class="tab-panel" id="panel-crosstabs"><main class="tab-main">
+<section class="card">
+  <h2><span class="num">5</span>Cross-tabs · UNI × PRES STATUS × REMEDIATION × Action</h2>
+  <p class="h2-sub">Heat-mapped matrices crossing the four key dimensions. Click any column header to sort.</p>
+  <div class="callout">
+    <strong>Three things this surfaces.</strong>
+    (1) <b>96% of action items live on MASTER rows</b> — the source of truth — not on the live cohorts learners see.
+    (2) Of 62 "In progress" rows, <b>59 are MASTER</b>. The active backlog is really a master-row backlog.
+    (3) <b>UCT has 219 SCHEDULED rows</b> and zero remediation logged — the largest un-triaged slice in the tracker.
+  </div>
+  <h3>1 · UNI × PRES STATUS</h3>
+  <p class="h2-sub">How each university’s rows distribute across the presentation lifecycle.</p>
+  <div class="table-wrap"><table class="dtable" id="t-x-uni-pres"></table></div>
+  <h3>2 · UNI × REMEDIATION STATUS</h3>
+  <p class="h2-sub">Where each university sits in the Change Log workflow. Sorted by % Done.</p>
+  <div class="table-wrap"><table class="dtable" id="t-x-uni-rem"></table></div>
+  <h3>3 · PRES STATUS × REMEDIATION STATUS</h3>
+  <p class="h2-sub">Which lifecycle stages hold the actionable work.</p>
+  <div class="table-wrap"><table class="dtable" id="t-x-pres-rem"></table></div>
+  <h3>4 · PRES STATUS × ACTION RECOMMENDED</h3>
+  <p class="h2-sub">What kinds of fixes are queued against each lifecycle stage. Master rows carry 96% of the action volume.</p>
+  <div class="table-wrap"><table class="dtable" id="t-x-pres-action"></table></div>
+  <h3>5 · REMEDIATION STATUS × ACTION RECOMMENDED</h3>
+  <p class="h2-sub">Confirms most "Done" items were straightforward Removes; "In progress" is overwhelmingly Removes too.</p>
+  <div class="table-wrap"><table class="dtable" id="t-x-rem-action"></table></div>
+</section>
+</main></div>
+<div class="tab-panel" id="panel-replace"><main class="tab-main">
+<section class="card">
+  <h2><span class="num">6</span>What "Replace" replaces with</h2>
+  <p class="h2-sub">For the 47 Replace / Content-missing items, this is the destination component. Buckets derived from the "New component" column.</p>
+  <div class="grid-3">
+    <div class="insight-card info"><div class="ic-label">#1 Moodle Choice / Questionnaire</div><div class="ic-value">20</div><p>Most-common target. Concentrated in MIT (10) and Oxford (6).</p></div>
+    <div class="insight-card good"><div class="ic-label">#2 Accordions</div><div class="ic-value">11</div><p>Flipcards → Accordions migration. Mostly LSE (8) and Oxford (3).</p></div>
+    <div class="insight-card warn"><div class="ic-label">#3 Other / Bespoke</div><div class="ic-value">16</div><p>Personal reflection text, Incorporate, Discussion prompt, Remove instead, Other bespoke.</p></div>
+  </div>
+  <div id="replace-blocks"></div>
+</section>
+</main></div>
+<div class="tab-panel" id="panel-priority"><main class="tab-main">
+<section class="card">
+  <h2><span class="num">7</span>High & Medium impact items</h2>
+  <p class="h2-sub">Sort any column. Default: Impact (HIGH first), then UNI, then Course.</p>
+  <div class="table-wrap"><table class="dtable" id="t-priority"></table></div>
+</section>
+</main></div>
+<div class="tab-panel" id="panel-upcoming"><main class="tab-main">
+<section class="card">
+  <h2><span class="num">8</span>Upcoming module go-lives</h2>
+  <p class="h2-sub">Module Go-Live dates inside ACTIVE cohorts, May–Aug 2026.</p>
+  <div class="grid-3">
+    <div class="insight-card warn"><div class="ic-label">June 2026</div><div class="ic-value">22 go-lives</div><p>Peak month.</p></div>
+    <div class="insight-card info"><div class="ic-label">July 2026</div><div class="ic-value">4 go-lives</div><p>Tail end of the spring cohort wave.</p></div>
+    <div class="insight-card good"><div class="ic-label">May / Aug 2026</div><div class="ic-value">3 go-lives</div><p>Light bookends.</p></div>
+  </div>
+  <div class="table-wrap"><table class="dtable" id="t-upcoming"></table></div>
+</section>
+</main></div>
+<footer><div class="foot-inner">
+  <span><span class="tag">LearningMate</span> · A Straive Company &nbsp;·&nbsp; PRIMARY TRACKER analysis for 2U Master EXCO</span>
+  <span>Generated 29-May-2026 · Local-first</span>
+</div></footer>
+<script>
+'use strict';
+const DATA = {"generated": "2026-05-29", "uni_name": {"OXF": "Oxford", "UCT": "UCT", "LSE": "LSE", "MIT": "MIT", "YALE": "Yale", "GSB": "Stanford GSB", "HAR": "Harvard", "ECON": "Economist", "RICE": "Rice", "CAM": "Cambridge", "GS": "Goldman Sachs", "BOC": "SDA Bocconi", "UTOR": "U of Toronto", "STAN": "Stanford", "HEC": "HEC Paris", "NU": "Northwestern"}, "totals": {"total_rows": 2387, "distinct_courses": 114, "distinct_unis": 16, "distinct_active_pres": 137, "distinct_scheduled_pres": 171, "action_items": 262, "actionable_workload": 621, "done": 536, "in_progress": 62, "needs_update": 23, "pct_done": 86, "high_impact": 11, "medium_impact": 34, "low_impact": 215}, "status_counts": {"ACTIVE": 804, "SCHEDULED": 760, "MASTER": 545, "CANCELLED": 11, "COMPLETE": 8, "PLANNED": 234, "??": 12, "COMPLETED": 4, "DELETED": 1, "": 4, "?": 4}, "rem_counts": {"": 1169, "0. NOT APPLICABLE": 597, "2. CHANGE LOG DONE": 536, "LP - NEEDS UPDATING ": 23, "1. CHANGE LOG IN PROGRESS": 62}, "comp_counts": {"VIDEO": 849, "BOOK": 1518, "FORUM": 20}, "uni_counts": {"BOC": 6, "CAM": 36, "ECON": 48, "GS": 9, "GSB": 70, "HAR": 54, "HEC": 3, "LSE": 303, "MIT": 244, "NU": 1, "OXF": 890, "RICE": 40, "STAN": 4, "UCT": 464, "UTOR": 5, "YALE": 210}, "uni_agg": {"BOC": {"total": 6, "active_pres": 1, "scheduled_pres": 1, "na": 2, "blank": 4, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "display": "SDA Bocconi", "uni": "BOC"}, "CAM": {"total": 36, "active_pres": 8, "scheduled_pres": 8, "na": 5, "blank": 31, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "display": "Cambridge", "uni": "CAM"}, "ECON": {"total": 48, "active_pres": 0, "scheduled_pres": 0, "na": 18, "blank": 30, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "display": "Economist", "uni": "ECON"}, "GS": {"total": 9, "active_pres": 0, "scheduled_pres": 0, "na": 0, "blank": 9, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "display": "Goldman Sachs", "uni": "GS"}, "GSB": {"total": 70, "active_pres": 2, "scheduled_pres": 2, "na": 1, "blank": 69, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "display": "Stanford GSB", "uni": "GSB"}, "HAR": {"total": 54, "active_pres": 5, "scheduled_pres": 6, "na": 7, "blank": 47, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "display": "Harvard", "uni": "HAR"}, "HEC": {"total": 3, "active_pres": 0, "scheduled_pres": 1, "na": 1, "blank": 2, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "display": "HEC Paris", "uni": "HEC"}, "LSE": {"total": 303, "active_pres": 22, "scheduled_pres": 33, "na": 66, "blank": 0, "done": 235, "in_progress": 0, "needs_update": 2, "actionable": 237, "pct_done": 99, "action_items": 54, "high": 4, "medium": 13, "low": 37, "display": "LSE", "uni": "LSE"}, "MIT": {"total": 244, "active_pres": 16, "scheduled_pres": 24, "na": 66, "blank": 0, "done": 170, "in_progress": 0, "needs_update": 8, "actionable": 178, "pct_done": 96, "action_items": 53, "high": 7, "medium": 10, "low": 36, "display": "MIT", "uni": "MIT"}, "NU": {"total": 1, "active_pres": 0, "scheduled_pres": 0, "na": 0, "blank": 1, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "display": "Northwestern", "uni": "NU"}, "OXF": {"total": 890, "active_pres": 26, "scheduled_pres": 17, "na": 252, "blank": 432, "done": 131, "in_progress": 62, "needs_update": 13, "actionable": 206, "pct_done": 64, "action_items": 155, "high": 0, "medium": 11, "low": 141, "display": "Oxford", "uni": "OXF"}, "RICE": {"total": 40, "active_pres": 1, "scheduled_pres": 2, "na": 10, "blank": 30, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "display": "Rice", "uni": "RICE"}, "STAN": {"total": 4, "active_pres": 1, "scheduled_pres": 2, "na": 1, "blank": 3, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "display": "Stanford", "uni": "STAN"}, "UCT": {"total": 464, "active_pres": 42, "scheduled_pres": 58, "na": 125, "blank": 339, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "display": "UCT", "uni": "UCT"}, "UTOR": {"total": 5, "active_pres": 1, "scheduled_pres": 3, "na": 2, "blank": 3, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "display": "U of Toronto", "uni": "UTOR"}, "YALE": {"total": 210, "active_pres": 12, "scheduled_pres": 14, "na": 41, "blank": 169, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "display": "Yale", "uni": "YALE"}}, "active_pres_by_uni": {"BOC": 1, "CAM": 8, "GSB": 2, "HAR": 5, "LSE": 22, "MIT": 16, "OXF": 26, "RICE": 1, "STAN": 1, "UCT": 42, "UTOR": 1, "YALE": 12}, "action_counts": {"Remove": 215, "Replace (Choice)": 4, "Content missing": 6, "Replace": 31, "Replace (Accordion)": 6}, "impact_counts": {"LOW": 215, "MEDIUM": 34, "HIGH": 11}, "imp_action": {"LOW": {"Remove": 209, "Content missing": 4, "Replace": 1}, "MEDIUM": {"Replace (Choice)": 2, "Replace": 23, "Replace (Accordion)": 6, "Remove": 3}, "HIGH": {"Content missing": 2, "Replace (Choice)": 2, "Replace": 7}, "N/A": {"Remove": 1}, "(blank)": {"Remove": 2}}, "ai_by_uni": {"LSE": 54, "MIT": 53, "OXF": 155}, "ai_by_comp": {"BOOK": 157, "VIDEO": 103, "FORUM": 2}, "hm_items": [{"tab": "LSE", "uni": "LSE", "course": "LSE-LCPAMN", "status": "MASTER", "pres": "MASTER-LSE-LCPAMN", "go_live": "", "start": "", "end": "", "module": "M3", "module_details": "Section 1 Module 3: Competitive strategy", "component": "VIDEO", "component_details": "3.3 Enrichment activity: Business performance and strategy", "rem_status": "2. CHANGE LOG DONE", "action": "Content missing", "impact": "HIGH", "new_component": "Remove enrichment activity or create new enrichment activity.", "original_component": "Enrichment activity", "rationale": "No information available on the polls. Looks like a playbuzz quiz was supposed to replace the polls, but the quiz link currently links to the U1 class-wide discussion. This component needs some rework"}, {"tab": "LSE", "uni": "LSE", "course": "LSE-LGD", "status": "MASTER", "pres": "MASTER-LSE-LGD", "go_live": "", "start": "", "end": "", "module": "M2", "module_details": "Module 2: Data Governance", "component": "BOOK", "component_details": "2.4 Casebook: ConsentCritiquing consent frameworks", "rem_status": "2. CHANGE LOG DONE", "action": "Replace (Choice)", "impact": "HIGH", "new_component": "Replace polls with quiz questions and re-build component using the Lesson tool. Component can still be called casebook. \"Assessments\" provided of each case can be removed but used to formulate quiz feedback.", "original_component": "Casebook", "rationale": "Doesn't lead to further discussion, but does require students to make a clear selection as they receive feedback after each poll and as the polls link to the assignment in this module. If this were to"}, {"tab": "LSE", "uni": "LSE", "course": "LSE-LGD", "status": "MASTER", "pres": "MASTER-LSE-LGD", "go_live": "", "start": "", "end": "", "module": "M2", "module_details": "Module 2: Data Governance", "component": "BOOK", "component_details": "2.4 Casebook: ConsentCase  2", "rem_status": "2. CHANGE LOG DONE", "action": "Replace (Choice)", "impact": "HIGH", "new_component": "Replace polls with quiz questions and re-build component using the Lesson tool. Component can still be called casebook. \"Assessments\" provided of each case can be removed but used to formulate quiz feedback.", "original_component": "Casebook", "rationale": "Doesn't lead to further discussion, but does require students to make a clear selection as they receive feedback after each poll and as the polls link to the assignment in this module. If this were to"}, {"tab": "LSE", "uni": "LSE", "course": "LSE-PRE", "status": "MASTER", "pres": "MASTER-LSE-PRE", "go_live": "", "start": "", "end": "", "module": "M3", "module_details": "Module 3: Competitive strategy", "component": "VIDEO", "component_details": "3.3 Enrichment activity: Business performance and strategy", "rem_status": "2. CHANGE LOG DONE", "action": "Content missing", "impact": "HIGH", "new_component": "Remove enrichment activity or create new enrichment activity.", "original_component": "Enrichment activity", "rationale": "No information available on the polls. Looks like a playbuzz quiz was supposed to replace the polls, but the quiz link currently links to the U1 class-wide discussion. This component needs some rework"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-BLN", "status": "MASTER", "pres": "MASTER-MIT-BLN", "go_live": "", "start": "", "end": "", "module": "M7", "module_details": "Module 7: Key challenges for crypto: Privacy, governance, and regulation", "component": "BOOK", "component_details": "7.1 Video set: Navigate crypto privacy and regulation. Chapter: Navigate crypto privacy and regulation (cont.)", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "HIGH", "new_component": "Add Moodle Questionnaire or Choice Tool component to this unit using the same question from the poll", "original_component": "Video Set", "rationale": "There to see how the class voted but there is also some reflection questions in the video set that follows the poll and a class discussion that follows the video set in which students reflect on their"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-NUR", "status": "MASTER", "pres": "MASTER-MIT-NUR", "go_live": "", "start": "", "end": "", "module": "M3", "module_details": "Module 3: Brain agility and cognitive diversity", "component": "BOOK", "component_details": "3.2 Notes: Leveraging brain agility and diversity of thinking. Chapter: Explore your thinking approaches", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "HIGH", "new_component": "Add Moodle Questionnaire or Choice Tool component to this unit, before the SGD, using the same question from the poll", "original_component": "Notes", "rationale": "There to see how the class voted but there is also a small-group discussion that follows in which students reflect on their own and their peers' responses to the polls. We'll need some contextual copy"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-SL", "status": "MASTER", "pres": "MASTER-MIT-SL", "go_live": "", "start": "", "end": "", "module": "M5", "module_details": "Module 5: Inventing your way to a new future and building credibility", "component": "BOOK", "component_details": "5.2 Activity: Choose the best way to mobilize others. Chapter: Poll 5: Building credibility", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "HIGH", "new_component": "Add Moodle Questionnaire or Choice Tool component to this  unit using the same questions from the poll OR Turn this into an online submission activity where student provide answers to the questions in text entry fields.", "original_component": "Activity", "rationale": "There to see how the class voted but there is also a class discussion that follows in which students reflect on their own and their peers' responses to the polls. We'll need some contextual copy chang"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-SL", "status": "MASTER", "pres": "MASTER-MIT-SL", "go_live": "", "start": "", "end": "", "module": "M5", "module_details": "Module 5: Inventing your way to a new future and building credibility", "component": "BOOK", "component_details": "5.2 Activity: Choose the best way to mobilize others. Chapter: Poll 4: Managing change", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "HIGH", "new_component": "Add Moodle Questionnaire or Choice Tool component to this  unit using the same questions from the poll OR Turn this into an online submission activity where student provide answers to the questions in text entry fields.", "original_component": "Activity", "rationale": "There to see how the class voted but there is also a class discussion that follows in which students reflect on their own and their peers' responses to the polls. We'll need some contextual copy chang"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-SL", "status": "MASTER", "pres": "MASTER-MIT-SL", "go_live": "", "start": "", "end": "", "module": "M5", "module_details": "Module 5: Inventing your way to a new future and building credibility", "component": "BOOK", "component_details": "5.2 Activity: Choose the best way to mobilize others. Chapter: Poll 3: Creating a learning culture", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "HIGH", "new_component": "Add Moodle Questionnaire or Choice Tool component to this  unit using the same questions from the poll OR Turn this into an online submission activity where student provide answers to the questions in text entry fields.", "original_component": "Activity", "rationale": "There to see how the class voted but there is also a class discussion that follows in which students reflect on their own and their peers' responses to the polls. We'll need some contextual copy chang"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-SL", "status": "MASTER", "pres": "MASTER-MIT-SL", "go_live": "", "start": "", "end": "", "module": "M5", "module_details": "Module 5: Inventing your way to a new future and building credibility", "component": "BOOK", "component_details": "5.2 Activity: Choose the best way to mobilize others. Chapter: Poll 2: Executing while innovating", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "HIGH", "new_component": "Add Moodle Questionnaire or Choice Tool component to this  unit using the same questions from the poll OR Turn this into an online submission activity where student provide answers to the questions in text entry fields.", "original_component": "Activity", "rationale": "There to see how the class voted but there is also a class discussion that follows in which students reflect on their own and their peers' responses to the polls. We'll need some contextual copy chang"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-SL", "status": "MASTER", "pres": "MASTER-MIT-SL", "go_live": "", "start": "", "end": "", "module": "M5", "module_details": "Module 5: Inventing your way to a new future and building credibility", "component": "BOOK", "component_details": "5.2 Activity: Choose the best way to mobilize others. Chapter: Poll 1: Inventing new structures or processes", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "HIGH", "new_component": "Add Moodle Questionnaire or Choice Tool component to this  unit using the same questions from the poll OR Turn this into an online submission activity where student provide answers to the questions in text entry fields.", "original_component": "Activity", "rationale": "There to see how the class voted but there is also a class discussion that follows in which students reflect on their own and their peers' responses to the polls. We'll need some contextual copy chang"}, {"tab": "LSE", "uni": "LSE", "course": "LSE-EPP", "status": "MASTER", "pres": "MASTER-LSE-EPP", "go_live": "", "start": "", "end": "", "module": "M5", "module_details": "Module 5: Providing public goods", "component": "VIDEO", "component_details": "5.6 Class-wide discussion: Would you contribute to the common pot?", "rem_status": "2. CHANGE LOG DONE", "action": "Replace (Choice)", "impact": "MEDIUM", "new_component": "Add Moodle Questionnaire or Choice Tool component to this unit, before the CWD, using the same questions from the poll", "original_component": "Class-wide discussion", "rationale": "There to see how their peers voted and leads to further discussion in this class-wide discussion on their own and their peers' responses to the polls."}, {"tab": "LSE", "uni": "LSE", "course": "LSE-LEC", "status": "MASTER", "pres": "MASTER-LSE-LEC", "go_live": "", "start": "", "end": "", "module": "M6", "module_details": "Module 6: Defences in hostile takeovers", "component": "VIDEO", "component_details": "6.5 Enrichment acivity: Share your views on takeover defences and the related corporate law", "rem_status": "2. CHANGE LOG DONE", "action": "Replace (Choice)", "impact": "MEDIUM", "new_component": "Replace entire component with Moodle Questionnaire or Choice Tool component using the same questions from the poll", "original_component": "Enrichment activity", "rationale": "Entire component is centred around the polls and seeing how peers voted."}, {"tab": "LSE", "uni": "LSE", "course": "LSE-PCS", "status": "MASTER", "pres": "MASTER-LSE-PCS", "go_live": "", "start": "", "end": "", "module": "M1", "module_details": "Module 1: The many causes of climate change", "component": "BOOK", "component_details": "1.5 Media set: The roots of climate inactionPrioritisation", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Turn poll into personal reflection text. Change component from media set to video component.", "original_component": "Media set", "rationale": "There to see how the class voted but doesn't lead to another discussion or further reflection. Could just be a personal reflection rather than needing to see how others voted. Component has to change "}, {"tab": "LSE", "uni": "LSE", "course": "LSE-PCS", "status": "MASTER", "pres": "MASTER-LSE-PCS", "go_live": "", "start": "", "end": "", "module": "M4", "module_details": "Module 4: Activism and obstruction in environmental advocacy", "component": "BOOK", "component_details": "4.4 Media set: Conflicts, strategies, and tacticsStrategies (cont.)", "rem_status": "2. CHANGE LOG DONE", "action": "Replace (Accordion)", "impact": "MEDIUM", "new_component": "Same component but replace with Accordions", "original_component": "Media Set", "rationale": "There to test student knowledge of concepts learned in the media set. Requires question-and-answer format replacement."}, {"tab": "LSE", "uni": "LSE", "course": "LSE-PCS", "status": "MASTER", "pres": "MASTER-LSE-PCS", "go_live": "", "start": "", "end": "", "module": "M5", "module_details": "Module 5: Corporate environmental governance", "component": "BOOK", "component_details": "5.8 Media set: Logics, critiques, and backlashESG investment activities (cont.)", "rem_status": "2. CHANGE LOG DONE", "action": "Replace (Accordion)", "impact": "MEDIUM", "new_component": "Same component but replace with Accordions", "original_component": "Media Set", "rationale": "There to test student knowledge of concepts learned in the media set. Requires question-and-answer format replacement."}, {"tab": "LSE", "uni": "LSE", "course": "LSE-PPA", "status": "MASTER", "pres": "MASTER-LSE-PPA", "go_live": "", "start": "", "end": "", "module": "M2", "module_details": "Module 2: Individuals and strategic interactions", "component": "BOOK", "component_details": "2.2 Notes: Rationality and bounded rationalityBehavioural economics (cont.)", "rem_status": "2. CHANGE LOG DONE", "action": "Replace (Accordion)", "impact": "MEDIUM", "new_component": "Same component but replace with accordions. Use poll questions as accordion headers and place contextual copy that gives feedback inside the accordion.", "original_component": "Notes", "rationale": "There to test student knowledge of concepts learned in the media set before an answer is provided. Requires question-and-answer format replacement."}, {"tab": "LSE", "uni": "LSE", "course": "LSE-PPA", "status": "MASTER", "pres": "MASTER-LSE-PPA", "go_live": "", "start": "", "end": "", "module": "M2", "module_details": "Module 2: Individuals and strategic interactions", "component": "BOOK", "component_details": "2.2 Notes: Rationality and bounded rationalityFraming", "rem_status": "2. CHANGE LOG DONE", "action": "Replace (Accordion)", "impact": "MEDIUM", "new_component": "Same component but replace with accordions. Use poll questions as accordion headers and place contextual copy that gives feedback inside the accordion.", "original_component": "Notes", "rationale": "There to test student knowledge of concepts learned in the media set before an answer is provided. Requires question-and-answer format replacement."}, {"tab": "LSE", "uni": "LSE", "course": "LSE-PPA", "status": "MASTER", "pres": "MASTER-LSE-PPA", "go_live": "", "start": "", "end": "", "module": "M2", "module_details": "Module 2: Individuals and strategic interactions", "component": "BOOK", "component_details": "2.2 Notes: Rationality and bounded rationalityAnchoring", "rem_status": "2. CHANGE LOG DONE", "action": "Replace (Accordion)", "impact": "MEDIUM", "new_component": "Same component but replace with accordions. Use poll questions as accordion headers and place contextual copy that gives feedback inside the accordion.", "original_component": "Notes", "rationale": "There to test student knowledge of concepts learned in the media set before an answer is provided. Requires question-and-answer format replacement."}, {"tab": "LSE", "uni": "LSE", "course": "LSE-PPA", "status": "MASTER", "pres": "MASTER-LSE-PPA", "go_live": "", "start": "", "end": "", "module": "M4", "module_details": "Module 4: Quantitative skills for public policy", "component": "BOOK", "component_details": "4.2 Notes: Introduction to foundational statistical termsProbability theory", "rem_status": "2. CHANGE LOG DONE", "action": "Replace (Accordion)", "impact": "MEDIUM", "new_component": "Same component but replace with Accordions. Use flipcard front for accordion titles and provide feedback inside the accordion.", "original_component": "Notes", "rationale": "There to test student knowledge of concepts learned in the media set. Requires question-and-answer format replacement. Flip card answers available in LDP."}, {"tab": "LSE", "uni": "LSE", "course": "LSE-PPA", "status": "MASTER", "pres": "MASTER-LSE-PPA", "go_live": "", "start": "", "end": "", "module": "M4", "module_details": "Module 4: Quantitative skills for public policy", "component": "BOOK", "component_details": "4.2 Notes: Introduction to foundational statistical termsThe law of conjunction and the law of disjunction", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Same component but replace with Accordions. Use flipcard front for accordion titles and provide feedback inside the accordion.", "original_component": "Notes", "rationale": "There to test student knowledge of concepts learned in the media set. Requires question-and-answer format replacement. Flip card answers available in LDP."}, {"tab": "LSE", "uni": "LSE", "course": "LSE-PPA", "status": "MASTER", "pres": "MASTER-LSE-PPA", "go_live": "", "start": "", "end": "", "module": "M5", "module_details": "Module 5: Policy evaluation", "component": "BOOK", "component_details": "5.2 Notes: Causal inferenceFormulating hypotheses", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Same component but replace with Accordions. Use flipcard front for accordion titles and provide feedback inside the accordion.", "original_component": "Notes", "rationale": "There to test student knowledge of concepts learned in the media set. Requires question-and-answer format replacement. Flip card answers available in LDP."}, {"tab": "LSE", "uni": "LSE", "course": "LSE-PPI", "status": "MASTER", "pres": "MASTER-LSE-PPI", "go_live": "", "start": "", "end": "", "module": "M2", "module_details": "Module 2: Behavioural public policy", "component": "VIDEO", "component_details": "2.1 Resource: Navigating behavioural public policy innovations", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Choice tool", "original_component": "Resource", "rationale": "Helpful to see peer responses. Ideally can replicate all content using the Choice tool which allows polls and recreate all content that's currently there"}, {"tab": "LSE", "uni": "LSE", "course": "LSE-PPI", "status": "MASTER", "pres": "MASTER-LSE-PPI", "go_live": "", "start": "", "end": "", "module": "M5", "module_details": "Module 5: Participation in public policy decision-making", "component": "VIDEO", "component_details": "5.6 Class-wide discussion: Deliberating the challenges of sortition-based participatory initiatives", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Choice tool", "original_component": "CWDF", "rationale": "Replicate the existing CWDF blurb but using the Choice tool to retain the polls. Polls relevant to the topic. CWDF post can remain unchanged"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-BLC", "status": "MASTER", "pres": "MASTER-MIT-BLC", "go_live": "", "start": "", "end": "", "module": "-", "module_details": "-", "component": "FORUM", "component_details": "4.7 Small-group discussion: Taking advantage of the reduction in the cost of networking", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Replace with discussion prompt using the same question", "original_component": "Small-group discussion", "rationale": "There to see how the small-group voted and leads to further reflection in this small-group discussion."}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-BLC", "status": "MASTER", "pres": "MASTER-MIT-BLC", "go_live": "", "start": "", "end": "", "module": "-", "module_details": "-", "component": "FORUM", "component_details": "4.7 Small-group discussion: Taking advantage of the reduction in the cost of networking", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Replace with discussion prompt using the same question", "original_component": "Small-group discussion", "rationale": "There to see how the small-group voted and leads to further reflection in this small-group discussion."}, {"tab": "MIT Media Lab", "uni": "MIT", "course": "MIT-BSC", "status": "MASTER", "pres": "MASTER-MIT-BSC", "go_live": "", "start": "", "end": "", "module": "M5", "module_details": "Module 5: Sustainable communities: Local production and lower consumption", "component": "VIDEO", "component_details": "5.3 Enrichment activity: Does your city conserve energy and resources?", "rem_status": "2. CHANGE LOG DONE", "action": "Remove", "impact": "MEDIUM", "new_component": "Same component but turn into personal reflection text", "original_component": "Enrichment activity", "rationale": "There to see how the class voted and ties to a discussion that follows but is not an integral part of the discussion. Could just be a personal reflection rather than needing to see how others voted. P"}, {"tab": "MIT Media Lab", "uni": "MIT", "course": "MIT-BSC", "status": "MASTER", "pres": "MASTER-MIT-BSC", "go_live": "", "start": "", "end": "", "module": "M5", "module_details": "Module 5: Sustainable communities: Local production and lower consumption", "component": "VIDEO", "component_details": "5.3 Enrichment activity: Does your city conserve energy and resources?", "rem_status": "2. CHANGE LOG DONE", "action": "Remove", "impact": "MEDIUM", "new_component": "Same component but turn into personal reflection text", "original_component": "Enrichment activity", "rationale": "There to see how the class voted and ties to a discussion that follows but is not an integral part of the discussion. Could just be a personal reflection rather than needing to see how others voted. P"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-DBS", "status": "MASTER", "pres": "MASTER-MIT-DBS", "go_live": "", "start": "", "end": "", "module": "M3", "module_details": "Module 3: Platforms in a digital economy", "component": "VIDEO", "component_details": "3.4 Enrichment activity: Profitability", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Same component but turn into personal reflection text and add the same question to the accompanying clas-wide discussion", "original_component": "Enrichment activity", "rationale": "There to see how the class voted and ties to an accompanying class-wide discussion. Could start as a personal reflection in the enrichment activity and also be a question in the accompanying discussio"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-DBS", "status": "MASTER", "pres": "MASTER-MIT-DBS", "go_live": "", "start": "", "end": "", "module": "M5", "module_details": "Module 5: Harnessing the crowd", "component": "VIDEO", "component_details": "5.4 Enrichment activity: Concerns around using the crowd", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Same component but turn into personal reflection text and add the same question to the accompanying clas-wide discussion", "original_component": "Enrichment activity", "rationale": "There to see how the class voted and ties to an accompanying class-wide discussion. Could start as a personal reflection in the enrichment activity and also be a question in the accompanying discussio"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-DTT", "status": "MASTER", "pres": "MASTER-MIT-DTT", "go_live": "", "start": "", "end": "", "module": "M1", "module_details": "Module 1: Navigating transformational change from the human perspective", "component": "BOOK", "component_details": "1.1 Notes: The human element of digital change. Chapter: A model of competence", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Add Moodle Choice Tool or Questionnaire to this module using the same questions", "original_component": "Notes", "rationale": "There to see how the class voted but there is also a callback to this poll in M6 where you are asked if your confidence / ability has changed throughout the course. The questionnaire can be used to ac"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-DTT", "status": "MASTER", "pres": "MASTER-MIT-DTT", "go_live": "", "start": "", "end": "", "module": "M6", "module_details": "Module 6: Mapping the transition journey", "component": "VIDEO", "component_details": "6.5 Video set: Becoming a master of change", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Add Moodle Questionnaire or Choice Tool to this module using the same questions", "original_component": "Video set", "rationale": "This calls back to the poll in M1 where they see if their views changed. A questionnaire could be set up using the some poll questions to achieve a similar result."}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-ITS", "status": "MASTER", "pres": "MASTER-MIT-ITS", "go_live": "", "start": "", "end": "", "module": "M2", "module_details": "Module 2: Achieving operational excellence", "component": "VIDEO", "component_details": "2.2 Class-wide discussion forum: The importance of an operational backbone", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Add Moodle Questionnaire or Choice Tool component to this unit, before the CWD, using the same question from the poll", "original_component": "Class-wide discussion", "rationale": "There to see how their peers voted and leads to further discussion in this class-wide discussion."}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-MTAISE", "status": "MASTER", "pres": "MASTER-MIT-MTAISE", "go_live": "", "start": "", "end": "", "module": "M18", "module_details": "Module 18: (Section 3) Mapping the transition journey", "component": "VIDEO", "component_details": "18.5 Video set: Becoming a master of change", "rem_status": "2. CHANGE LOG DONE", "action": "Remove", "impact": "MEDIUM", "new_component": "Add Moodle Questionnaire or Choice Tool to this module using the same questions", "original_component": "Video set", "rationale": "This calls back to the poll in M1 where they see if their views changed. A questionnaire could be set up using the some poll questions to achieve a similar result."}, {"tab": "Oxford", "uni": "OXF", "course": "OXF-AIM", "status": "MASTER", "pres": "MASTER-OXF-AIM", "go_live": "", "start": "", "end": "", "module": "M3", "module_details": "Module 3: Structuring investment vehicles", "component": "BOOK", "component_details": "3.4 Video set: Calculating and negotiating fees. Chapter: Calculating and negotiating fees", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Same component but replace flipcard with Accordion. Use flipcard front in contextual copy, flipcard title for accordion title, and provide feedback inside the accordion.", "original_component": "Video Set", "rationale": "There to test student knowledge of concepts learned in the component. Requires question-and-answer format replacement. Flip card answers available in the LAC doc."}, {"tab": "Oxford", "uni": "OXF", "course": "OXF-AIM", "status": "MASTER", "pres": "MASTER-OXF-AIM", "go_live": "", "start": "", "end": "", "module": "M3", "module_details": "Module 3: Structuring investment vehicles", "component": "BOOK", "component_details": "3.4 Video set: Calculating and negotiating fees. Chapter: Carried interest", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Same component but replace flipcard with Accordion. Use flipcard front in contextual copy, flipcard title for accordion title, and provide feedback inside the accordion.", "original_component": "Video Set", "rationale": "There to test student knowledge of concepts learned in the component. Requires question-and-answer format replacement. Flip card answers available in the LAC doc."}, {"tab": "Oxford", "uni": "OXF", "course": "OXF-ARI", "status": "MASTER", "pres": "MASTER-OXF-ARI", "go_live": "", "start": "", "end": "", "module": "M1", "module_details": "Module 1: Artificial intelligence ecosystem", "component": "VIDEO", "component_details": "1.4 Class-wide discussion: AI then and now", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Choice Tool or Questionnaire tool with poll questions and discussion prompts", "original_component": "Class-wide discussion", "rationale": "Discussion relies on the poll responses, although it technically can be completed without the poll currently"}, {"tab": "Oxford", "uni": "OXF", "course": "OXF-DIG", "status": "MASTER", "pres": "MASTER-OXF-DIG", "go_live": "", "start": "", "end": "", "module": "M7", "module_details": "Module 7: Experimentation, measurement, and analytics", "component": "BOOK", "component_details": "7.2 Notes: The importance of experimentation. Chapter: Confounding: A common mistake to look out for", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Same component but replace flipcard with Accordion. Use poll answer options in contextual copy framing the accordien, before the accordion, the poll question for the accordion title, and provide feedback inside the accordion. Feedback can be found in the paragraph currently following the poll. ", "original_component": "Notes", "rationale": "There to test student knowledge of concepts learned in the component. Requires question-and-answer format replacement. Flip card answers available in the LAC doc."}, {"tab": "Oxford", "uni": "OXF", "course": "OXF-INO", "status": "MASTER", "pres": "MASTER-OXF-INO", "go_live": "", "start": "", "end": "", "module": "M4", "module_details": "Module 4: 4IR technology: Ethics and governance", "component": "VIDEO", "component_details": "4.5 Enrichment activity: Research the ethical implications of emerging technology", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Choice Tool or Questionnaire tool that keeps the substantive questions of the Enrichment activity", "original_component": "Enrichment activity", "rationale": "Purpose of the enrichment activity is to read articles and see classmate responses on the issues raised by the article. Can be replicated in the Questionnaire tool. This could also include questions f"}, {"tab": "Oxford", "uni": "OXF", "course": "OXF-MNB", "status": "MASTER", "pres": "MASTER-OXF-MNB", "go_live": "", "start": "", "end": "", "module": "M3", "module_details": "Module 3: The job of the leader: Choosing and connecting", "component": "VIDEO", "component_details": "3.5 Enrichment activity: Map your network of connections", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Add Choice Tool or Questionnaire tool component to the unit after the enrichment activity, or build the enrichment activity within one of these tools.", "original_component": "Enrichment activity", "rationale": "Class-wide discussion that follows the enrichment activity relies on the poll responses of peers in addition to Class wide discussion answers."}, {"tab": "Oxford", "uni": "OXF", "course": "OXF-OAIEPS", "status": "MASTER", "pres": "MASTER-OXF-OAIEPS", "go_live": "", "start": "", "end": "", "module": "M1", "module_details": "Module 1: (Section 1) Artificial intelligence ecosystem", "component": "VIDEO", "component_details": "1.4 Class-wide discussion: AI then and now", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Choice Tool or Questionnaire tool with poll questions and discussion prompts", "original_component": "Class-wide discussion", "rationale": "Discussion relies on the poll responses, although it technically can be completed without the poll currently"}, {"tab": "Oxford", "uni": "OXF", "course": "OXF-OAIEPS", "status": "MASTER", "pres": "MASTER-OXF-OAIEPS", "go_live": "", "start": "", "end": "", "module": "M10", "module_details": "Module 10: (Section 2) 4IR technology: Ethics and governance", "component": "VIDEO", "component_details": "10.5 Enrichment activity: Research the ethical implications of emerging technology", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Choice Tool or Questionnaire tool that keeps the substantive questions of the Enrichment activity", "original_component": "Enrichment activity", "rationale": "Purpose of the enrichment activity is to read articles and see classmate responses on the issues raised by the article. Can be replicated in the Questionnaire tool. This could also include questions f"}, {"tab": "Oxford", "uni": "OXF", "course": "OXF-OSMEPS", "status": "MASTER", "pres": "MASTER-OXF-OSLEPS", "go_live": "", "start": "", "end": "", "module": "M3", "module_details": "Module 3: (Section 1) The job of the leader: Choosing and connecting", "component": "VIDEO", "component_details": "3.5 Enrichment activity: Map your network of connections", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Add Choice Tool or Questionnaire tool component to the unit after the enrichment activity, or build the enrichment activity within one of these tools.", "original_component": "Enrichment activity", "rationale": "Class-wide discussion that follows the enrichment activity relies on the poll responses of peers in addition to Class wide discussion answers."}, {"tab": "Oxford", "uni": "OXF", "course": "OXF-WML", "status": "ACTIVE", "pres": "OXF-WML-2026-04-01", "go_live": "", "start": "2026-04-01", "end": "2026-07-01", "module": "M6", "module_details": "Module 6: Imagining your future possibilities as a leader", "component": "VIDEO", "component_details": "6.11 Class-wide discussion: Share what you have learnt about yourself as a leader", "rem_status": "2. CHANGE LOG DONE", "action": "Replace", "impact": "MEDIUM", "new_component": "Same component but add a question to incorporate the topic into the discussion", "original_component": "Class-wide discussion", "rationale": "Topic covered in the poll is relevant to the discussion, and can be easily incorporated."}, {"tab": "Oxford", "uni": "OXF", "course": "OXF-WML", "status": "SCHEDULED", "pres": "OXF-WML-2026-06-10", "go_live": "", "start": "2026-06-10", "end": "2026-09-09", "module": "M6", "module_details": "Module 6: Imagining your future possibilities as a leader", "component": "VIDEO", "component_details": "6.11 Class-wide discussion: Share what you have learnt about yourself as a leader", "rem_status": "1. CHANGE LOG IN PROGRESS", "action": "Replace", "impact": "MEDIUM", "new_component": "Same component, but add a question to incorporate the topic into the discussion.", "original_component": "Class-wide discussion", "rationale": "Topic covered in the poll is relevant to the discussion, and can be easily incorporated."}], "upc_month": {"2026-06": 22, "2026-05": 1, "2026-07": 4, "2026-08": 2}, "upcoming_active": [{"tab": "Cambridge", "uni": "CAM", "course": "CAM-BSM", "status": "ACTIVE", "pres": "CAM-BSM-2026-04-29", "go_live": "2026-06-03", "start": "2026-04-28", "end": "2026-08-05", "module": "M6", "module_details": "Module 6: Stakeholder engagement and communication", "component": "BOOK", "component_details": "6.1 Media set: Collaboration and partnerships. Chapter: Addressing wicked problems", "rem_status": "", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "Cambridge", "uni": "CAM", "course": "CAM-SUP", "status": "ACTIVE", "pres": "CAM-SUP-2026-04-29", "go_live": "2026-05-29", "start": "2026-04-28", "end": "2026-08-12", "module": "M4", "module_details": "Module 4: Designing efficient, resilient supply chains", "component": "VIDEO", "component_details": "4.4 Video: Developing the conversation on supply chain evolution and design", "rem_status": "", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "Harvardx", "uni": "HAR", "course": "HAR-CYB", "status": "ACTIVE", "pres": "HAR-CYB-2026-04-29", "go_live": "2026-06-17", "start": "2026-04-29", "end": "2026-08-12", "module": "M3", "module_details": "Module 3: Identifying important business systems and assets", "component": "BOOK", "component_details": "3.3 Notes: Identifying critical business networks. Chapter: Business and administration networks", "rem_status": "", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "Harvardx", "uni": "HAR", "course": "HAR-CYB", "status": "ACTIVE", "pres": "HAR-CYB-2026-04-29", "go_live": "2026-06-17", "start": "2026-04-29", "end": "2026-08-12", "module": "M7", "module_details": "Module 7: Incident response and accountability", "component": "BOOK", "component_details": "7.3 Notes: Phase two: Elevate and communicate. Chapter: Identify key actors and their roles", "rem_status": "", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "LSE", "uni": "LSE", "course": "LSE-LCPAMN", "status": "ACTIVE", "pres": "LSE-LCPAMN-2026-02-04", "go_live": "2026-06-17", "start": "2026-02-04", "end": "2026-09-23", "module": "M2", "module_details": "Section 3 Module 2: Goal setting and rewards", "component": "VIDEO", "component_details": "2.4 Enrichment activity: Setting performance goals", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "LSE", "uni": "LSE", "course": "LSE-LCPAMN", "status": "ACTIVE", "pres": "LSE-LCPAMN-2026-02-04", "go_live": "2026-07-08", "start": "2026-02-04", "end": "2026-09-23", "module": "M3", "module_details": "Section 3 Module 5: Performance management", "component": "BOOK", "component_details": "5.2 Notes: Measuring performancePFW\u2019s parcel division", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "LSE", "uni": "LSE", "course": "LSE-LCPAMN", "status": "ACTIVE", "pres": "LSE-LCPAMN-2026-02-04", "go_live": "2026-07-08", "start": "2026-02-04", "end": "2026-09-23", "module": "M5", "module_details": "Section 3 Module 5: Performance management", "component": "VIDEO", "component_details": "5.6 Activity: Conduct a performance review", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "LSE", "uni": "LSE", "course": "LSE-LEC", "status": "ACTIVE", "pres": "LSE-LEC-2026-04-22", "go_live": "2026-06-03", "start": "2026-04-21", "end": "2026-07-15", "module": "M6", "module_details": "Module 6: Defences in hostile takeovers", "component": "BOOK", "component_details": "6.1 Notes: Hostile takeovers and takeover defencesIntroduction to the takeover defence", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "LSE", "uni": "LSE", "course": "LSE-LEC", "status": "ACTIVE", "pres": "LSE-LEC-2026-04-22", "go_live": "2026-06-03", "start": "2026-04-21", "end": "2026-07-15", "module": "M6", "module_details": "Module 6: Defences in hostile takeovers", "component": "VIDEO", "component_details": "6.5 Enrichment acivity: Share your views on takeover defences and the related corporate law", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "LSE", "uni": "LSE", "course": "LSE-PPAEPS", "status": "ACTIVE", "pres": "LSE-PPAEPS-2026-02-11", "go_live": "2026-06-10", "start": "2026-02-11", "end": "2026-08-05", "module": "M6", "module_details": "Module 6: (Section 2) Data in public policy", "component": "VIDEO", "component_details": "6.1 Resource: Navigating innovations in data for public policy", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "LSE", "uni": "LSE", "course": "LSE-PPAEPS", "status": "ACTIVE", "pres": "LSE-PPAEPS-2026-02-11", "go_live": "2026-06-10", "start": "2026-02-11", "end": "2026-08-05", "module": "M7", "module_details": "Module 7: (Section 2) Artificial intelligence in public policy", "component": "BOOK", "component_details": "7.5 Notes: Challenges for public sector AI adoptionAlgorithmic impact assessments", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-DTT", "status": "ACTIVE", "pres": "MIT-DTT-2026-04-29", "go_live": "2026-06-10", "start": "2026-04-29", "end": "2026-07-22", "module": "M6", "module_details": "Module 6: Mapping the transition journey", "component": "VIDEO", "component_details": "6.3 Video: Transition effectiveness", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-DTT", "status": "ACTIVE", "pres": "MIT-DTT-2026-04-29", "go_live": "2026-06-10", "start": "2026-04-29", "end": "2026-07-22", "module": "M6", "module_details": "Module 6: Mapping the transition journey", "component": "VIDEO", "component_details": "6.5 Video set: Becoming a master of change", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-MTAISE", "status": "ACTIVE", "pres": "MIT-MTAISE-2026-02-04", "go_live": "2026-06-17", "start": "2026-02-04", "end": "2026-08-05", "module": "M18", "module_details": "Module 18: (Section 3) Mapping the transition journey", "component": "VIDEO", "component_details": "18.3 Video: Transition effectiveness", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-MTAISE", "status": "ACTIVE", "pres": "MIT-MTAISE-2026-02-04", "go_live": "2026-06-17", "start": "2026-02-04", "end": "2026-08-05", "module": "M18", "module_details": "Module 18: (Section 3) Mapping the transition journey", "component": "VIDEO", "component_details": "18.5 Video set: Becoming a master of change", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-MTAISE", "status": "ACTIVE", "pres": "MIT-MTAISE-2026-04-15", "go_live": "2026-06-24", "start": "2026-04-15", "end": "2026-10-14", "module": "M10", "module_details": "Module 10: (Section 2) Helping machines learn to use language", "component": "VIDEO", "component_details": "10.4 Enrichment activity: Language data in action", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-MTAISE", "status": "ACTIVE", "pres": "MIT-MTAISE-2026-04-15", "go_live": "2026-07-29", "start": "2026-04-15", "end": "2026-10-14", "module": "M13", "module_details": "Module 13: (Section 3) Navigating transformational change from the human perspective", "component": "BOOK", "component_details": "13.1 Notes: The human element of digital change. Chapter: Nicholson\u2019s Transition Cycles Model (cont.)", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-MTAISE", "status": "ACTIVE", "pres": "MIT-MTAISE-2026-04-15", "go_live": "2026-07-29", "start": "2026-04-15", "end": "2026-10-14", "module": "M13", "module_details": "Module 13: (Section 3) Navigating transformational change from the human perspective", "component": "BOOK", "component_details": "13.1 Notes: The human element of digital change. Chapter: A model of competence", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-MTAISE", "status": "ACTIVE", "pres": "MIT-MTAISE-2026-04-15", "go_live": "2026-08-26", "start": "2026-04-15", "end": "2026-10-14", "module": "M18", "module_details": "Module 18: (Section 3) Mapping the transition journey", "component": "VIDEO", "component_details": "18.3 Video: Transition effectiveness", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-MTAISE", "status": "ACTIVE", "pres": "MIT-MTAISE-2026-04-15", "go_live": "2026-08-26", "start": "2026-04-15", "end": "2026-10-14", "module": "M19", "module_details": "Module 18: (Section 3) Mapping the transition journey", "component": "VIDEO", "component_details": "18.5 Video set: Becoming a master of change", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-SL", "status": "ACTIVE", "pres": "MIT-SL-2026-04-29", "go_live": "2026-06-03", "start": "2026-04-29", "end": "2026-07-22", "module": "M5", "module_details": "Module 5: Inventing your way to a new future and building credibility", "component": "BOOK", "component_details": "5.4 Casebook: How leaders approach inventing and building credibility. Chapter: Maeve Coburn", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-SL", "status": "ACTIVE", "pres": "MIT-SL-2026-04-29", "go_live": "2026-06-03", "start": "2026-04-29", "end": "2026-07-22", "module": "M5", "module_details": "Module 5: Inventing your way to a new future and building credibility", "component": "BOOK", "component_details": "5.4 Casebook: How leaders approach inventing and building credibility. Chapter: Kristina Allikmets", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-SL", "status": "ACTIVE", "pres": "MIT-SL-2026-04-29", "go_live": "2026-06-03", "start": "2026-04-29", "end": "2026-07-22", "module": "M5", "module_details": "Module 5: Inventing your way to a new future and building credibility", "component": "BOOK", "component_details": "5.4 Casebook: How leaders approach inventing and building credibility. Chapter: Michael Sorrell", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-SL", "status": "ACTIVE", "pres": "MIT-SL-2026-04-29", "go_live": "2026-06-03", "start": "2026-04-29", "end": "2026-07-22", "module": "M5", "module_details": "Module 5: Inventing your way to a new future and building credibility", "component": "BOOK", "component_details": "5.4 Casebook: How leaders approach inventing and building credibility. Chapter: Andy Plump", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-SL", "status": "ACTIVE", "pres": "MIT-SL-2026-04-29", "go_live": "2026-06-03", "start": "2026-04-29", "end": "2026-07-22", "module": "M5", "module_details": "Module 5: Inventing your way to a new future and building credibility", "component": "BOOK", "component_details": "5.2 Activity: Choose the best way to mobilize others. Chapter: Poll 5: Building credibility", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-SL", "status": "ACTIVE", "pres": "MIT-SL-2026-04-29", "go_live": "2026-06-03", "start": "2026-04-29", "end": "2026-07-22", "module": "M5", "module_details": "Module 5: Inventing your way to a new future and building credibility", "component": "BOOK", "component_details": "5.2 Activity: Choose the best way to mobilize others. Chapter: Poll 4: Managing change", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-SL", "status": "ACTIVE", "pres": "MIT-SL-2026-04-29", "go_live": "2026-06-03", "start": "2026-04-29", "end": "2026-07-22", "module": "M5", "module_details": "Module 5: Inventing your way to a new future and building credibility", "component": "BOOK", "component_details": "5.2 Activity: Choose the best way to mobilize others. Chapter: Poll 3: Creating a learning culture", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-SL", "status": "ACTIVE", "pres": "MIT-SL-2026-04-29", "go_live": "2026-06-03", "start": "2026-04-29", "end": "2026-07-22", "module": "M5", "module_details": "Module 5: Inventing your way to a new future and building credibility", "component": "BOOK", "component_details": "5.2 Activity: Choose the best way to mobilize others. Chapter: Poll 2: Executing while innovating", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}, {"tab": "MIT Sloan", "uni": "MIT", "course": "MIT-SL", "status": "ACTIVE", "pres": "MIT-SL-2026-04-29", "go_live": "2026-06-03", "start": "2026-04-29", "end": "2026-07-22", "module": "M5", "module_details": "Module 5: Inventing your way to a new future and building credibility", "component": "BOOK", "component_details": "5.2 Activity: Choose the best way to mobilize others. Chapter: Poll 1: Inventing new structures or processes", "rem_status": "2. CHANGE LOG DONE", "action": "N/A", "impact": "N/A", "new_component": "N/A", "original_component": "N/A", "rationale": "N/A"}], "pivot": [{"total": 303, "active_pres": 22, "scheduled_pres": 33, "na": 66, "blank": 0, "done": 235, "in_progress": 0, "needs_update": 2, "actionable": 237, "pct_done": 99, "action_items": 54, "high": 4, "medium": 13, "low": 37, "uni": "LSE", "display": "LSE", "tabs": [{"total": 303, "active_pres": 22, "scheduled_pres": 33, "na": 66, "blank": 0, "done": 235, "in_progress": 0, "needs_update": 2, "actionable": 237, "pct_done": 99, "action_items": 54, "high": 4, "medium": 13, "low": 37, "tab": "LSE", "courses": [{"total": 31, "active_pres": 2, "scheduled_pres": 2, "na": 8, "blank": 0, "done": 23, "in_progress": 0, "needs_update": 0, "actionable": 23, "pct_done": 100, "action_items": 7, "high": 0, "medium": 0, "low": 7, "course": "LSE-BEP"}, {"total": 4, "active_pres": 1, "scheduled_pres": 2, "na": 1, "blank": 0, "done": 3, "in_progress": 0, "needs_update": 0, "actionable": 3, "pct_done": 100, "action_items": 1, "high": 0, "medium": 0, "low": 1, "course": "LSE-DIT"}, {"total": 4, "active_pres": 1, "scheduled_pres": 2, "na": 1, "blank": 0, "done": 3, "in_progress": 0, "needs_update": 0, "actionable": 3, "pct_done": 100, "action_items": 1, "high": 0, "medium": 1, "low": 0, "course": "LSE-EPP"}, {"total": 28, "active_pres": 2, "scheduled_pres": 1, "na": 7, "blank": 0, "done": 21, "in_progress": 0, "needs_update": 0, "actionable": 21, "pct_done": 100, "action_items": 7, "high": 1, "medium": 0, "low": 6, "course": "LSE-LCPAMN"}, {"total": 12, "active_pres": 1, "scheduled_pres": 2, "na": 3, "blank": 0, "done": 9, "in_progress": 0, "needs_update": 0, "actionable": 9, "pct_done": 100, "action_items": 3, "high": 0, "medium": 1, "low": 2, "course": "LSE-LEC"}, {"total": 44, "active_pres": 1, "scheduled_pres": 2, "na": 11, "blank": 0, "done": 33, "in_progress": 0, "needs_update": 0, "actionable": 33, "pct_done": 100, "action_items": 5, "high": 2, "medium": 0, "low": 3, "course": "LSE-LGD"}, {"total": 4, "active_pres": 1, "scheduled_pres": 2, "na": 1, "blank": 0, "done": 3, "in_progress": 0, "needs_update": 0, "actionable": 3, "pct_done": 100, "action_items": 1, "high": 0, "medium": 0, "low": 1, "course": "LSE-LOC"}, {"total": 10, "active_pres": 1, "scheduled_pres": 3, "na": 2, "blank": 0, "done": 8, "in_progress": 0, "needs_update": 0, "actionable": 8, "pct_done": 100, "action_items": 2, "high": 0, "medium": 0, "low": 2, "course": "LSE-LPG"}, {"total": 12, "active_pres": 1, "scheduled_pres": 2, "na": 3, "blank": 0, "done": 9, "in_progress": 0, "needs_update": 0, "actionable": 9, "pct_done": 100, "action_items": 3, "high": 0, "medium": 0, "low": 3, "course": "LSE-MPT"}, {"total": 20, "active_pres": 1, "scheduled_pres": 2, "na": 5, "blank": 0, "done": 15, "in_progress": 0, "needs_update": 0, "actionable": 15, "pct_done": 100, "action_items": 5, "high": 0, "medium": 3, "low": 2, "course": "LSE-PCS"}, {"total": 36, "active_pres": 1, "scheduled_pres": 2, "na": 0, "blank": 0, "done": 36, "in_progress": 0, "needs_update": 0, "actionable": 36, "pct_done": 100, "action_items": 9, "high": 0, "medium": 6, "low": 3, "course": "LSE-PPA"}, {"total": 52, "active_pres": 2, "scheduled_pres": 1, "na": 13, "blank": 0, "done": 39, "in_progress": 0, "needs_update": 0, "actionable": 39, "pct_done": 100, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "LSE-PPAEPS"}, {"total": 15, "active_pres": 1, "scheduled_pres": 1, "na": 5, "blank": 0, "done": 10, "in_progress": 0, "needs_update": 0, "actionable": 10, "pct_done": 100, "action_items": 4, "high": 0, "medium": 2, "low": 2, "course": "LSE-PPI"}, {"total": 14, "active_pres": 3, "scheduled_pres": 3, "na": 4, "blank": 0, "done": 10, "in_progress": 0, "needs_update": 0, "actionable": 10, "pct_done": 100, "action_items": 2, "high": 1, "medium": 0, "low": 1, "course": "LSE-PRE"}, {"total": 8, "active_pres": 1, "scheduled_pres": 2, "na": 0, "blank": 0, "done": 8, "in_progress": 0, "needs_update": 0, "actionable": 8, "pct_done": 100, "action_items": 2, "high": 0, "medium": 0, "low": 2, "course": "LSE-RCR"}, {"total": 6, "active_pres": 1, "scheduled_pres": 3, "na": 1, "blank": 0, "done": 5, "in_progress": 0, "needs_update": 0, "actionable": 5, "pct_done": 100, "action_items": 1, "high": 0, "medium": 0, "low": 1, "course": "LSE-REF"}, {"total": 3, "active_pres": 1, "scheduled_pres": 1, "na": 1, "blank": 0, "done": 0, "in_progress": 0, "needs_update": 2, "actionable": 2, "pct_done": 0, "action_items": 1, "high": 0, "medium": 0, "low": 1, "course": "LSE-IDE"}]}]}, {"total": 244, "active_pres": 16, "scheduled_pres": 24, "na": 66, "blank": 0, "done": 170, "in_progress": 0, "needs_update": 8, "actionable": 178, "pct_done": 96, "action_items": 53, "high": 7, "medium": 10, "low": 36, "uni": "MIT", "display": "MIT", "tabs": [{"total": 52, "active_pres": 1, "scheduled_pres": 4, "na": 16, "blank": 0, "done": 36, "in_progress": 0, "needs_update": 0, "actionable": 36, "pct_done": 100, "action_items": 9, "high": 0, "medium": 2, "low": 7, "tab": "MIT Media Lab", "courses": [{"total": 47, "active_pres": 1, "scheduled_pres": 2, "na": 12, "blank": 0, "done": 35, "in_progress": 0, "needs_update": 0, "actionable": 35, "pct_done": 100, "action_items": 8, "high": 0, "medium": 2, "low": 6, "course": "MIT-BSC"}, {"total": 5, "active_pres": 0, "scheduled_pres": 2, "na": 4, "blank": 0, "done": 1, "in_progress": 0, "needs_update": 0, "actionable": 1, "pct_done": 100, "action_items": 1, "high": 0, "medium": 0, "low": 1, "course": "MIT-CRP"}]}, {"total": 181, "active_pres": 14, "scheduled_pres": 19, "na": 44, "blank": 0, "done": 133, "in_progress": 0, "needs_update": 4, "actionable": 137, "pct_done": 97, "action_items": 43, "high": 7, "medium": 8, "low": 28, "tab": "MIT Sloan", "courses": [{"total": 16, "active_pres": 1, "scheduled_pres": 2, "na": 4, "blank": 0, "done": 12, "in_progress": 0, "needs_update": 0, "actionable": 12, "pct_done": 100, "action_items": 4, "high": 0, "medium": 2, "low": 2, "course": "MIT-BLC"}, {"total": 9, "active_pres": 1, "scheduled_pres": 1, "na": 0, "blank": 0, "done": 9, "in_progress": 0, "needs_update": 0, "actionable": 9, "pct_done": 100, "action_items": 3, "high": 1, "medium": 0, "low": 2, "course": "MIT-BLN"}, {"total": 10, "active_pres": 2, "scheduled_pres": 2, "na": 2, "blank": 0, "done": 8, "in_progress": 0, "needs_update": 0, "actionable": 8, "pct_done": 100, "action_items": 2, "high": 0, "medium": 2, "low": 0, "course": "MIT-DBS"}, {"total": 12, "active_pres": 1, "scheduled_pres": 0, "na": 4, "blank": 0, "done": 8, "in_progress": 0, "needs_update": 0, "actionable": 8, "pct_done": 100, "action_items": 3, "high": 0, "medium": 2, "low": 1, "course": "MIT-DTT"}, {"total": 6, "active_pres": 1, "scheduled_pres": 3, "na": 2, "blank": 0, "done": 4, "in_progress": 0, "needs_update": 0, "actionable": 4, "pct_done": 100, "action_items": 1, "high": 0, "medium": 1, "low": 0, "course": "MIT-ITS"}, {"total": 4, "active_pres": 1, "scheduled_pres": 2, "na": 1, "blank": 0, "done": 3, "in_progress": 0, "needs_update": 0, "actionable": 3, "pct_done": 100, "action_items": 1, "high": 0, "medium": 0, "low": 1, "course": "MIT-ML"}, {"total": 25, "active_pres": 2, "scheduled_pres": 2, "na": 5, "blank": 0, "done": 20, "in_progress": 0, "needs_update": 0, "actionable": 20, "pct_done": 100, "action_items": 4, "high": 0, "medium": 1, "low": 3, "course": "MIT-MTAISE"}, {"total": 5, "active_pres": 1, "scheduled_pres": 3, "na": 2, "blank": 0, "done": 3, "in_progress": 0, "needs_update": 0, "actionable": 3, "pct_done": 100, "action_items": 1, "high": 1, "medium": 0, "low": 0, "course": "MIT-NUR"}, {"total": 80, "active_pres": 1, "scheduled_pres": 2, "na": 20, "blank": 0, "done": 60, "in_progress": 0, "needs_update": 0, "actionable": 60, "pct_done": 100, "action_items": 20, "high": 5, "medium": 0, "low": 15, "course": "MIT-SL"}, {"total": 8, "active_pres": 2, "scheduled_pres": 1, "na": 2, "blank": 0, "done": 4, "in_progress": 0, "needs_update": 2, "actionable": 6, "pct_done": 67, "action_items": 2, "high": 0, "medium": 0, "low": 2, "course": "MIT-CFE"}, {"total": 6, "active_pres": 1, "scheduled_pres": 1, "na": 2, "blank": 0, "done": 2, "in_progress": 0, "needs_update": 2, "actionable": 4, "pct_done": 50, "action_items": 2, "high": 0, "medium": 0, "low": 2, "course": "MIT-PRS"}]}, {"total": 11, "active_pres": 1, "scheduled_pres": 1, "na": 6, "blank": 0, "done": 1, "in_progress": 0, "needs_update": 4, "actionable": 5, "pct_done": 20, "action_items": 1, "high": 0, "medium": 0, "low": 1, "tab": "MITSap", "courses": [{"total": 2, "active_pres": 1, "scheduled_pres": 0, "na": 0, "blank": 0, "done": 1, "in_progress": 0, "needs_update": 1, "actionable": 2, "pct_done": 50, "action_items": 1, "high": 0, "medium": 0, "low": 1, "course": "MIT-RES"}, {"total": 9, "active_pres": 0, "scheduled_pres": 1, "na": 6, "blank": 0, "done": 0, "in_progress": 0, "needs_update": 3, "actionable": 3, "pct_done": 0, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "MIT-RLF"}]}]}, {"total": 890, "active_pres": 26, "scheduled_pres": 17, "na": 252, "blank": 432, "done": 131, "in_progress": 62, "needs_update": 13, "actionable": 206, "pct_done": 64, "action_items": 155, "high": 0, "medium": 11, "low": 141, "uni": "OXF", "display": "Oxford", "tabs": [{"total": 886, "active_pres": 26, "scheduled_pres": 17, "na": 252, "blank": 432, "done": 128, "in_progress": 61, "needs_update": 13, "actionable": 202, "pct_done": 63, "action_items": 151, "high": 0, "medium": 11, "low": 139, "tab": "Oxford", "courses": [{"total": 8, "active_pres": 1, "scheduled_pres": 1, "na": 2, "blank": 4, "done": 2, "in_progress": 0, "needs_update": 0, "actionable": 2, "pct_done": 100, "action_items": 2, "high": 0, "medium": 2, "low": 0, "course": "OXF-AIM"}, {"total": 6, "active_pres": 1, "scheduled_pres": 1, "na": 2, "blank": 0, "done": 4, "in_progress": 0, "needs_update": 0, "actionable": 4, "pct_done": 100, "action_items": 1, "high": 0, "medium": 1, "low": 0, "course": "OXF-ARI"}, {"total": 20, "active_pres": 1, "scheduled_pres": 1, "na": 5, "blank": 10, "done": 5, "in_progress": 0, "needs_update": 0, "actionable": 5, "pct_done": 100, "action_items": 5, "high": 0, "medium": 1, "low": 4, "course": "OXF-DIG"}, {"total": 80, "active_pres": 1, "scheduled_pres": 1, "na": 20, "blank": 40, "done": 20, "in_progress": 0, "needs_update": 0, "actionable": 20, "pct_done": 100, "action_items": 20, "high": 0, "medium": 1, "low": 19, "course": "OXF-INO"}, {"total": 4, "active_pres": 1, "scheduled_pres": 1, "na": 1, "blank": 2, "done": 1, "in_progress": 0, "needs_update": 0, "actionable": 1, "pct_done": 100, "action_items": 1, "high": 0, "medium": 0, "low": 1, "course": "OXF-LSC"}, {"total": 12, "active_pres": 2, "scheduled_pres": 1, "na": 3, "blank": 6, "done": 3, "in_progress": 0, "needs_update": 0, "actionable": 3, "pct_done": 100, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "OXF-LSP"}, {"total": 100, "active_pres": 2, "scheduled_pres": 1, "na": 20, "blank": 60, "done": 20, "in_progress": 0, "needs_update": 0, "actionable": 20, "pct_done": 100, "action_items": 18, "high": 0, "medium": 1, "low": 17, "course": "OXF-MNB"}, {"total": 120, "active_pres": 2, "scheduled_pres": 0, "na": 24, "blank": 72, "done": 24, "in_progress": 0, "needs_update": 0, "actionable": 24, "pct_done": 100, "action_items": 14, "high": 0, "medium": 2, "low": 12, "course": "OXF-OAIEPS"}, {"total": 6, "active_pres": 0, "scheduled_pres": 0, "na": 2, "blank": 2, "done": 2, "in_progress": 0, "needs_update": 0, "actionable": 2, "pct_done": 100, "action_items": 2, "high": 0, "medium": 0, "low": 2, "course": "OXF-OEP"}, {"total": 120, "active_pres": 2, "scheduled_pres": 2, "na": 40, "blank": 61, "done": 19, "in_progress": 0, "needs_update": 0, "actionable": 19, "pct_done": 100, "action_items": 19, "high": 0, "medium": 1, "low": 18, "course": "OXF-OSMEPS"}, {"total": 8, "active_pres": 0, "scheduled_pres": 1, "na": 2, "blank": 4, "done": 2, "in_progress": 0, "needs_update": 0, "actionable": 2, "pct_done": 100, "action_items": 2, "high": 0, "medium": 0, "low": 2, "course": "OXF-PSF"}, {"total": 10, "active_pres": 2, "scheduled_pres": 1, "na": 2, "blank": 6, "done": 2, "in_progress": 0, "needs_update": 0, "actionable": 2, "pct_done": 100, "action_items": 2, "high": 0, "medium": 0, "low": 2, "course": "OXF-STA"}, {"total": 200, "active_pres": 2, "scheduled_pres": 1, "na": 80, "blank": 80, "done": 19, "in_progress": 21, "needs_update": 0, "actionable": 40, "pct_done": 48, "action_items": 40, "high": 0, "medium": 0, "low": 40, "course": "OXF-OSLEPS"}, {"total": 20, "active_pres": 1, "scheduled_pres": 1, "na": 9, "blank": 0, "done": 5, "in_progress": 6, "needs_update": 0, "actionable": 11, "pct_done": 45, "action_items": 7, "high": 0, "medium": 2, "low": 4, "course": "OXF-WML"}, {"total": 8, "active_pres": 1, "scheduled_pres": 1, "na": 2, "blank": 4, "done": 0, "in_progress": 2, "needs_update": 0, "actionable": 2, "pct_done": 0, "action_items": 2, "high": 0, "medium": 0, "low": 2, "course": "OXF-ALG"}, {"total": 4, "active_pres": 0, "scheduled_pres": 0, "na": 0, "blank": 2, "done": 0, "in_progress": 0, "needs_update": 2, "actionable": 2, "pct_done": 0, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "OXF-LTI"}, {"total": 14, "active_pres": 1, "scheduled_pres": 0, "na": 0, "blank": 7, "done": 0, "in_progress": 0, "needs_update": 7, "actionable": 7, "pct_done": 0, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "OXF-MAF"}, {"total": 6, "active_pres": 1, "scheduled_pres": 0, "na": 0, "blank": 3, "done": 0, "in_progress": 0, "needs_update": 3, "actionable": 3, "pct_done": 0, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "OXF-MJD"}, {"total": 64, "active_pres": 1, "scheduled_pres": 1, "na": 16, "blank": 32, "done": 0, "in_progress": 16, "needs_update": 0, "actionable": 16, "pct_done": 0, "action_items": 16, "high": 0, "medium": 0, "low": 16, "course": "OXF-ORP"}, {"total": 2, "active_pres": 1, "scheduled_pres": 0, "na": 0, "blank": 1, "done": 0, "in_progress": 0, "needs_update": 1, "actionable": 1, "pct_done": 0, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "OXF-PPG"}, {"total": 45, "active_pres": 2, "scheduled_pres": 1, "na": 18, "blank": 18, "done": 0, "in_progress": 9, "needs_update": 0, "actionable": 9, "pct_done": 0, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "OXF-REP"}, {"total": 21, "active_pres": 1, "scheduled_pres": 1, "na": 0, "blank": 14, "done": 0, "in_progress": 7, "needs_update": 0, "actionable": 7, "pct_done": 0, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "OXF-SAP"}, {"total": 8, "active_pres": 0, "scheduled_pres": 0, "na": 4, "blank": 4, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "OXF-WMLES"}]}]}, {"total": 6, "active_pres": 1, "scheduled_pres": 1, "na": 2, "blank": 4, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "uni": "BOC", "display": "SDA Bocconi", "tabs": [{"total": 6, "active_pres": 1, "scheduled_pres": 1, "na": 2, "blank": 4, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "tab": "SDA Bacconi", "courses": [{"total": 6, "active_pres": 1, "scheduled_pres": 1, "na": 2, "blank": 4, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "BOC-SLM"}]}]}, {"total": 36, "active_pres": 8, "scheduled_pres": 8, "na": 5, "blank": 31, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "uni": "CAM", "display": "Cambridge", "tabs": [{"total": 36, "active_pres": 8, "scheduled_pres": 8, "na": 5, "blank": 31, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "tab": "Cambridge", "courses": [{"total": 5, "active_pres": 2, "scheduled_pres": 2, "na": 1, "blank": 4, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "CAM-BSM"}, {"total": 4, "active_pres": 1, "scheduled_pres": 2, "na": 1, "blank": 3, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "CAM-CMSLEP"}, {"total": 12, "active_pres": 2, "scheduled_pres": 1, "na": 0, "blank": 12, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "CAM-GOV"}, {"total": 6, "active_pres": 1, "scheduled_pres": 1, "na": 2, "blank": 4, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "CAM-SFP"}, {"total": 5, "active_pres": 2, "scheduled_pres": 2, "na": 1, "blank": 4, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "CAM-SUP"}, {"total": 4, "active_pres": 0, "scheduled_pres": 0, "na": 0, "blank": 4, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "CAM-WLC"}]}]}, {"total": 48, "active_pres": 0, "scheduled_pres": 0, "na": 18, "blank": 30, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "uni": "ECON", "display": "Economist", "tabs": [{"total": 48, "active_pres": 0, "scheduled_pres": 0, "na": 18, "blank": 30, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "tab": "Economist", "courses": [{"total": 15, "active_pres": 0, "scheduled_pres": 0, "na": 6, "blank": 9, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "ECON-AISI"}, {"total": 18, "active_pres": 0, "scheduled_pres": 0, "na": 6, "blank": 12, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "ECON-BSW"}, {"total": 15, "active_pres": 0, "scheduled_pres": 0, "na": 6, "blank": 9, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "ECON-CRIT"}]}]}, {"total": 9, "active_pres": 0, "scheduled_pres": 0, "na": 0, "blank": 9, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "uni": "GS", "display": "Goldman Sachs", "tabs": [{"total": 3, "active_pres": 0, "scheduled_pres": 0, "na": 0, "blank": 3, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "tab": "GSTraining", "courses": [{"total": 1, "active_pres": 0, "scheduled_pres": 0, "na": 0, "blank": 1, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "GS-AP"}, {"total": 2, "active_pres": 0, "scheduled_pres": 0, "na": 0, "blank": 2, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "GS-PPT"}]}, {"total": 6, "active_pres": 0, "scheduled_pres": 0, "na": 0, "blank": 6, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "tab": "GS", "courses": [{"total": 5, "active_pres": 0, "scheduled_pres": 0, "na": 0, "blank": 5, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "GS-SSC"}, {"total": 1, "active_pres": 0, "scheduled_pres": 0, "na": 0, "blank": 1, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "GS-WBGS"}]}]}, {"total": 70, "active_pres": 2, "scheduled_pres": 2, "na": 1, "blank": 69, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "uni": "GSB", "display": "Stanford GSB", "tabs": [{"total": 70, "active_pres": 2, "scheduled_pres": 2, "na": 1, "blank": 69, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "tab": "GSB", "courses": [{"total": 4, "active_pres": 1, "scheduled_pres": 2, "na": 1, "blank": 3, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "GSB-BUS"}, {"total": 66, "active_pres": 1, "scheduled_pres": 0, "na": 0, "blank": 66, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "GSB-EXL"}]}]}, {"total": 54, "active_pres": 5, "scheduled_pres": 6, "na": 7, "blank": 47, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "uni": "HAR", "display": "Harvard", "tabs": [{"total": 54, "active_pres": 5, "scheduled_pres": 6, "na": 7, "blank": 47, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "tab": "Harvardx", "courses": [{"total": 3, "active_pres": 1, "scheduled_pres": 1, "na": 1, "blank": 2, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "HAR-CRS"}, {"total": 12, "active_pres": 2, "scheduled_pres": 3, "na": 2, "blank": 10, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "HAR-CYB"}, {"total": 27, "active_pres": 1, "scheduled_pres": 1, "na": 0, "blank": 27, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "HAR-FIH"}, {"total": 12, "active_pres": 2, "scheduled_pres": 1, "na": 4, "blank": 8, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "HAR-GHD"}]}]}, {"total": 3, "active_pres": 0, "scheduled_pres": 1, "na": 1, "blank": 2, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "uni": "HEC", "display": "HEC Paris", "tabs": [{"total": 3, "active_pres": 0, "scheduled_pres": 1, "na": 1, "blank": 2, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "tab": "HEC Paris", "courses": [{"total": 3, "active_pres": 0, "scheduled_pres": 1, "na": 1, "blank": 2, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "HEC-EXC"}]}]}, {"total": 1, "active_pres": 0, "scheduled_pres": 0, "na": 0, "blank": 1, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "uni": "NU", "display": "Northwestern", "tabs": [{"total": 1, "active_pres": 0, "scheduled_pres": 0, "na": 0, "blank": 1, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "tab": "Northwestern", "courses": [{"total": 1, "active_pres": 0, "scheduled_pres": 0, "na": 0, "blank": 1, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "NU-FEX"}]}]}, {"total": 40, "active_pres": 1, "scheduled_pres": 2, "na": 10, "blank": 30, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "uni": "RICE", "display": "Rice", "tabs": [{"total": 40, "active_pres": 1, "scheduled_pres": 2, "na": 10, "blank": 30, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "tab": "Rice", "courses": [{"total": 40, "active_pres": 1, "scheduled_pres": 2, "na": 10, "blank": 30, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "RICE-SPM"}]}]}, {"total": 4, "active_pres": 1, "scheduled_pres": 2, "na": 1, "blank": 3, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "uni": "STAN", "display": "Stanford", "tabs": [{"total": 4, "active_pres": 1, "scheduled_pres": 2, "na": 1, "blank": 3, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "tab": "Stanford", "courses": [{"total": 4, "active_pres": 1, "scheduled_pres": 2, "na": 1, "blank": 3, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "STAN-SOW"}]}]}, {"total": 464, "active_pres": 42, "scheduled_pres": 58, "na": 125, "blank": 339, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "uni": "UCT", "display": "UCT", "tabs": [{"total": 464, "active_pres": 42, "scheduled_pres": 58, "na": 125, "blank": 339, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "tab": "UCT", "courses": [{"total": 20, "active_pres": 2, "scheduled_pres": 2, "na": 4, "blank": 16, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-AGP"}, {"total": 7, "active_pres": 2, "scheduled_pres": 4, "na": 2, "blank": 5, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-APM"}, {"total": 20, "active_pres": 1, "scheduled_pres": 3, "na": 8, "blank": 12, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-BSD"}, {"total": 8, "active_pres": 1, "scheduled_pres": 2, "na": 2, "blank": 6, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-CCL"}, {"total": 6, "active_pres": 1, "scheduled_pres": 1, "na": 2, "blank": 4, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-CHM"}, {"total": 3, "active_pres": 1, "scheduled_pres": 1, "na": 1, "blank": 2, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-CMA"}, {"total": 30, "active_pres": 2, "scheduled_pres": 3, "na": 10, "blank": 20, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-CON"}, {"total": 5, "active_pres": 1, "scheduled_pres": 3, "na": 2, "blank": 3, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-CP"}, {"total": 6, "active_pres": 2, "scheduled_pres": 3, "na": 2, "blank": 4, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-EES"}, {"total": 3, "active_pres": 1, "scheduled_pres": 1, "na": 0, "blank": 3, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-FBM"}, {"total": 70, "active_pres": 2, "scheduled_pres": 2, "na": 14, "blank": 56, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-FEC"}, {"total": 15, "active_pres": 2, "scheduled_pres": 2, "na": 3, "blank": 12, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-IEM"}, {"total": 2, "active_pres": 1, "scheduled_pres": 0, "na": 0, "blank": 2, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-ITM"}, {"total": 16, "active_pres": 2, "scheduled_pres": 3, "na": 6, "blank": 10, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-IVM"}, {"total": 8, "active_pres": 2, "scheduled_pres": 1, "na": 2, "blank": 6, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-MCM"}, {"total": 5, "active_pres": 2, "scheduled_pres": 2, "na": 2, "blank": 3, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-MRA"}, {"total": 3, "active_pres": 1, "scheduled_pres": 1, "na": 1, "blank": 2, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-MTP"}, {"total": 6, "active_pres": 1, "scheduled_pres": 1, "na": 0, "blank": 6, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-NCR"}, {"total": 30, "active_pres": 2, "scheduled_pres": 3, "na": 10, "blank": 20, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-OM"}, {"total": 110, "active_pres": 4, "scheduled_pres": 6, "na": 30, "blank": 80, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-PDI"}, {"total": 5, "active_pres": 2, "scheduled_pres": 2, "na": 2, "blank": 3, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-PDM"}, {"total": 44, "active_pres": 4, "scheduled_pres": 6, "na": 12, "blank": 32, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-PM"}, {"total": 10, "active_pres": 1, "scheduled_pres": 3, "na": 2, "blank": 8, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-PMG"}, {"total": 4, "active_pres": 1, "scheduled_pres": 2, "na": 1, "blank": 3, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-SM"}, {"total": 28, "active_pres": 2, "scheduled_pres": 1, "na": 7, "blank": 21, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UCT-SMB"}]}]}, {"total": 5, "active_pres": 1, "scheduled_pres": 3, "na": 2, "blank": 3, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "uni": "UTOR", "display": "U of Toronto", "tabs": [{"total": 5, "active_pres": 1, "scheduled_pres": 3, "na": 2, "blank": 3, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "tab": "UToronto", "courses": [{"total": 5, "active_pres": 1, "scheduled_pres": 3, "na": 2, "blank": 3, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "UTOR-HAL"}]}]}, {"total": 210, "active_pres": 12, "scheduled_pres": 14, "na": 41, "blank": 169, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "uni": "YALE", "display": "Yale", "tabs": [{"total": 210, "active_pres": 12, "scheduled_pres": 14, "na": 41, "blank": 169, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "tab": "Yale", "courses": [{"total": 20, "active_pres": 1, "scheduled_pres": 2, "na": 5, "blank": 15, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "YALE-LDT"}, {"total": 32, "active_pres": 1, "scheduled_pres": 2, "na": 8, "blank": 24, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "YALE-MMB"}, {"total": 9, "active_pres": 1, "scheduled_pres": 1, "na": 3, "blank": 6, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "YALE-NGT"}, {"total": 3, "active_pres": 1, "scheduled_pres": 1, "na": 1, "blank": 2, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "YALE-SFI"}, {"total": 4, "active_pres": 2, "scheduled_pres": 1, "na": 1, "blank": 3, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "YALE-SMR"}, {"total": 4, "active_pres": 1, "scheduled_pres": 2, "na": 1, "blank": 3, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "YALE-WLO"}, {"total": 30, "active_pres": 1, "scheduled_pres": 3, "na": 12, "blank": 18, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "YALE-WLP"}, {"total": 40, "active_pres": 1, "scheduled_pres": 2, "na": 10, "blank": 30, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "YALE-WXL"}, {"total": 68, "active_pres": 3, "scheduled_pres": 0, "na": 0, "blank": 68, "done": 0, "in_progress": 0, "needs_update": 0, "actionable": 0, "pct_done": null, "action_items": 0, "high": 0, "medium": 0, "low": 0, "course": "YALE-YSWLSS"}]}]}], "uni_action_matrix": [{"uni": "OXF", "display": "Oxford", "total": 155, "high": 0, "medium": 11, "low": 141, "Remove": 144, "Replace": 11, "Replace (Accordion)": 0, "Replace (Choice)": 0, "Content missing": 0}, {"uni": "LSE", "display": "LSE", "total": 54, "high": 4, "medium": 13, "low": 37, "Remove": 32, "Replace": 6, "Replace (Accordion)": 6, "Replace (Choice)": 4, "Content missing": 6}, {"uni": "MIT", "display": "MIT", "total": 53, "high": 7, "medium": 10, "low": 36, "Remove": 39, "Replace": 14, "Replace (Accordion)": 0, "Replace (Choice)": 0, "Content missing": 0}], "replace_summary": [{"uni": "LSE", "display": "LSE", "total": 22, "buckets": [{"bucket": "Accordions", "count": 8, "samples": [{"course": "LSE-PCS", "module": "M4", "original": "Media Set", "new": "Same component but replace with Accordions", "action": "Replace (Accordion)", "impact": "MEDIUM"}, {"course": "LSE-PCS", "module": "M5", "original": "Media Set", "new": "Same component but replace with Accordions", "action": "Replace (Accordion)", "impact": "MEDIUM"}, {"course": "LSE-PPA", "module": "M2", "original": "Notes", "new": "Same component but replace with accordions. Use poll questions as accordion headers and place contextual copy that gives feedback inside the accordion.", "action": "Replace (Accordion)", "impact": "MEDIUM"}]}, {"bucket": "Moodle Choice / Questionnaire", "count": 4, "samples": [{"course": "LSE-EPP", "module": "M5", "original": "Class-wide discussion", "new": "Add Moodle Questionnaire or Choice Tool component to this unit, before the CWD, using the same questions from the poll", "action": "Replace (Choice)", "impact": "MEDIUM"}, {"course": "LSE-LEC", "module": "M6", "original": "Enrichment activity", "new": "Replace entire component with Moodle Questionnaire or Choice Tool component using the same questions from the poll", "action": "Replace (Choice)", "impact": "MEDIUM"}, {"course": "LSE-PPI", "module": "M2", "original": "Resource", "new": "Choice tool", "action": "Replace", "impact": "MEDIUM"}]}, {"bucket": "Other", "count": 4, "samples": [{"course": "LSE-LCPAMN", "module": "M3", "original": "Enrichment activity", "new": "Remove enrichment activity or create new enrichment activity.", "action": "Content missing", "impact": "HIGH"}, {"course": "LSE-LGD", "module": "M2", "original": "Casebook", "new": "Replace polls with quiz questions and re-build component using the Lesson tool. Component can still be called casebook. \"Assessments\" provided of each case can be removed but used to formulate quiz feedback.", "action": "Replace (Choice)", "impact": "HIGH"}, {"course": "LSE-LGD", "module": "M2", "original": "Casebook", "new": "Replace polls with quiz questions and re-build component using the Lesson tool. Component can still be called casebook. \"Assessments\" provided of each case can be removed but used to formulate quiz feedback.", "action": "Replace (Choice)", "impact": "HIGH"}]}, {"bucket": "Remove (no replacement)", "count": 2, "samples": [{"course": "LSE-LCPAMN", "module": "M3", "original": "Notes", "new": "Remove playbuzz quiz.", "action": "Content missing", "impact": "LOW"}, {"course": "LSE-PRE", "module": "M3", "original": "Notes", "new": "Remove playbuzz quiz.", "action": "Content missing", "impact": "LOW"}]}, {"bucket": "Personal reflection text", "count": 2, "samples": [{"course": "LSE-LEC", "module": "M6", "original": "Notes", "new": "Same component but turn into personal reflection text", "action": "Replace", "impact": "LOW"}, {"course": "LSE-PCS", "module": "M1", "original": "Media set", "new": "Turn poll into personal reflection text. Change component from media set to video component.", "action": "Replace", "impact": "MEDIUM"}]}, {"bucket": "Incorporate into existing", "count": 2, "samples": [{"course": "LSE-PPA", "module": "M1", "original": "Notes", "new": "Remove from LDP.", "action": "Content missing", "impact": "LOW"}, {"course": "LSE-PPA", "module": "M3", "original": "Notes", "new": "Remove from LDP.", "action": "Content missing", "impact": "LOW"}]}]}, {"uni": "MIT", "display": "MIT", "total": 14, "buckets": [{"bucket": "Moodle Choice / Questionnaire", "count": 10, "samples": [{"course": "MIT-BLN", "module": "M7", "original": "Video Set", "new": "Add Moodle Questionnaire or Choice Tool component to this unit using the same question from the poll", "action": "Replace", "impact": "HIGH"}, {"course": "MIT-DTT", "module": "M1", "original": "Notes", "new": "Add Moodle Choice Tool or Questionnaire to this module using the same questions", "action": "Replace", "impact": "MEDIUM"}, {"course": "MIT-DTT", "module": "M6", "original": "Video set", "new": "Add Moodle Questionnaire or Choice Tool to this module using the same questions", "action": "Replace", "impact": "MEDIUM"}]}, {"bucket": "Discussion prompt", "count": 2, "samples": [{"course": "MIT-BLC", "module": "-", "original": "Small-group discussion", "new": "Replace with discussion prompt using the same question", "action": "Replace", "impact": "MEDIUM"}, {"course": "MIT-BLC", "module": "-", "original": "Small-group discussion", "new": "Replace with discussion prompt using the same question", "action": "Replace", "impact": "MEDIUM"}]}, {"bucket": "Personal reflection text", "count": 2, "samples": [{"course": "MIT-DBS", "module": "M3", "original": "Enrichment activity", "new": "Same component but turn into personal reflection text and add the same question to the accompanying clas-wide discussion", "action": "Replace", "impact": "MEDIUM"}, {"course": "MIT-DBS", "module": "M5", "original": "Enrichment activity", "new": "Same component but turn into personal reflection text and add the same question to the accompanying clas-wide discussion", "action": "Replace", "impact": "MEDIUM"}]}]}, {"uni": "OXF", "display": "Oxford", "total": 11, "buckets": [{"bucket": "Moodle Choice / Questionnaire", "count": 6, "samples": [{"course": "OXF-ARI", "module": "M1", "original": "Class-wide discussion", "new": "Choice Tool or Questionnaire tool with poll questions and discussion prompts", "action": "Replace", "impact": "MEDIUM"}, {"course": "OXF-INO", "module": "M4", "original": "Enrichment activity", "new": "Choice Tool or Questionnaire tool that keeps the substantive questions of the Enrichment activity", "action": "Replace", "impact": "MEDIUM"}, {"course": "OXF-MNB", "module": "M3", "original": "Enrichment activity", "new": "Add Choice Tool or Questionnaire tool component to the unit after the enrichment activity, or build the enrichment activity within one of these tools.", "action": "Replace", "impact": "MEDIUM"}]}, {"bucket": "Accordions", "count": 3, "samples": [{"course": "OXF-AIM", "module": "M3", "original": "Video Set", "new": "Same component but replace flipcard with Accordion. Use flipcard front in contextual copy, flipcard title for accordion title, and provide feedback inside the accordion.", "action": "Replace", "impact": "MEDIUM"}, {"course": "OXF-AIM", "module": "M3", "original": "Video Set", "new": "Same component but replace flipcard with Accordion. Use flipcard front in contextual copy, flipcard title for accordion title, and provide feedback inside the accordion.", "action": "Replace", "impact": "MEDIUM"}, {"course": "OXF-DIG", "module": "M7", "original": "Notes", "new": "Same component but replace flipcard with Accordion. Use poll answer options in contextual copy framing the accordien, before the accordion, the poll question for the accordion title, and provide feedback inside the accordion. Feedback can be found in the paragraph currently following the poll. ", "action": "Replace", "impact": "MEDIUM"}]}, {"bucket": "Incorporate into existing", "count": 2, "samples": [{"course": "OXF-WML", "module": "M6", "original": "Class-wide discussion", "new": "Same component but add a question to incorporate the topic into the discussion", "action": "Replace", "impact": "MEDIUM"}, {"course": "OXF-WML", "module": "M6", "original": "Class-wide discussion", "new": "Same component, but add a question to incorporate the topic into the discussion.", "action": "Replace", "impact": "MEDIUM"}]}]}], "global_rep": {"Moodle Choice / Questionnaire": 20, "Remove (no replacement)": 2, "Other": 4, "Personal reflection text": 4, "Accordions": 11, "Incorporate into existing": 4, "Discussion prompt": 2}, "crosstab": {"uni_pres": [{"uni": "OXF", "display": "Oxford", "ACTIVE": 305, "SCHEDULED": 174, "PLANNED": 200, "MASTER": 197, "COMPLETE": 4, "CANCELLED": 2, "Other": 8, "_total": 890}, {"uni": "UCT", "display": "UCT", "ACTIVE": 167, "SCHEDULED": 219, "PLANNED": 0, "MASTER": 78, "COMPLETE": 0, "CANCELLED": 0, "Other": 0, "_total": 464}, {"uni": "LSE", "display": "LSE", "ACTIVE": 99, "SCHEDULED": 129, "PLANNED": 0, "MASTER": 74, "COMPLETE": 1, "CANCELLED": 0, "Other": 0, "_total": 303}, {"uni": "MIT", "display": "MIT", "ACTIVE": 67, "SCHEDULED": 106, "PLANNED": 4, "MASTER": 61, "COMPLETE": 1, "CANCELLED": 5, "Other": 0, "_total": 244}, {"uni": "YALE", "display": "Yale", "ACTIVE": 87, "SCHEDULED": 71, "PLANNED": 0, "MASTER": 52, "COMPLETE": 0, "CANCELLED": 0, "Other": 0, "_total": 210}, {"uni": "GSB", "display": "Stanford GSB", "ACTIVE": 34, "SCHEDULED": 2, "PLANNED": 0, "MASTER": 34, "COMPLETE": 0, "CANCELLED": 0, "Other": 0, "_total": 70}, {"uni": "HAR", "display": "Harvard", "ACTIVE": 18, "SCHEDULED": 20, "PLANNED": 0, "MASTER": 16, "COMPLETE": 0, "CANCELLED": 0, "Other": 0, "_total": 54}, {"uni": "ECON", "display": "Economist", "ACTIVE": 0, "SCHEDULED": 0, "PLANNED": 30, "MASTER": 9, "COMPLETE": 6, "CANCELLED": 0, "Other": 3, "_total": 48}, {"uni": "RICE", "display": "Rice", "ACTIVE": 10, "SCHEDULED": 20, "PLANNED": 0, "MASTER": 10, "COMPLETE": 0, "CANCELLED": 0, "Other": 0, "_total": 40}, {"uni": "CAM", "display": "Cambridge", "ACTIVE": 13, "SCHEDULED": 11, "PLANNED": 0, "MASTER": 9, "COMPLETE": 0, "CANCELLED": 3, "Other": 0, "_total": 36}, {"uni": "GS", "display": "Goldman Sachs", "ACTIVE": 0, "SCHEDULED": 0, "PLANNED": 0, "MASTER": 0, "COMPLETE": 0, "CANCELLED": 0, "Other": 9, "_total": 9}, {"uni": "BOC", "display": "SDA Bocconi", "ACTIVE": 2, "SCHEDULED": 2, "PLANNED": 0, "MASTER": 2, "COMPLETE": 0, "CANCELLED": 0, "Other": 0, "_total": 6}, {"uni": "UTOR", "display": "U of Toronto", "ACTIVE": 1, "SCHEDULED": 3, "PLANNED": 0, "MASTER": 1, "COMPLETE": 0, "CANCELLED": 0, "Other": 0, "_total": 5}, {"uni": "STAN", "display": "Stanford", "ACTIVE": 1, "SCHEDULED": 2, "PLANNED": 0, "MASTER": 1, "COMPLETE": 0, "CANCELLED": 0, "Other": 0, "_total": 4}, {"uni": "HEC", "display": "HEC Paris", "ACTIVE": 0, "SCHEDULED": 1, "PLANNED": 0, "MASTER": 1, "COMPLETE": 0, "CANCELLED": 1, "Other": 0, "_total": 3}, {"uni": "NU", "display": "Northwestern", "ACTIVE": 0, "SCHEDULED": 0, "PLANNED": 0, "MASTER": 0, "COMPLETE": 0, "CANCELLED": 0, "Other": 1, "_total": 1}], "uni_rem": [{"uni": "LSE", "display": "LSE", "Done": 235, "In progress": 0, "Needs updating": 2, "Not applicable": 66, "Not yet logged": 0, "_total": 303, "_actionable": 237, "_pct_done": 99}, {"uni": "MIT", "display": "MIT", "Done": 170, "In progress": 0, "Needs updating": 8, "Not applicable": 66, "Not yet logged": 0, "_total": 244, "_actionable": 178, "_pct_done": 96}, {"uni": "OXF", "display": "Oxford", "Done": 131, "In progress": 62, "Needs updating": 13, "Not applicable": 252, "Not yet logged": 432, "_total": 890, "_actionable": 206, "_pct_done": 64}, {"uni": "UCT", "display": "UCT", "Done": 0, "In progress": 0, "Needs updating": 0, "Not applicable": 125, "Not yet logged": 339, "_total": 464, "_actionable": 0, "_pct_done": null}, {"uni": "YALE", "display": "Yale", "Done": 0, "In progress": 0, "Needs updating": 0, "Not applicable": 41, "Not yet logged": 169, "_total": 210, "_actionable": 0, "_pct_done": null}, {"uni": "GSB", "display": "Stanford GSB", "Done": 0, "In progress": 0, "Needs updating": 0, "Not applicable": 1, "Not yet logged": 69, "_total": 70, "_actionable": 0, "_pct_done": null}, {"uni": "HAR", "display": "Harvard", "Done": 0, "In progress": 0, "Needs updating": 0, "Not applicable": 7, "Not yet logged": 47, "_total": 54, "_actionable": 0, "_pct_done": null}, {"uni": "ECON", "display": "Economist", "Done": 0, "In progress": 0, "Needs updating": 0, "Not applicable": 18, "Not yet logged": 30, "_total": 48, "_actionable": 0, "_pct_done": null}, {"uni": "RICE", "display": "Rice", "Done": 0, "In progress": 0, "Needs updating": 0, "Not applicable": 10, "Not yet logged": 30, "_total": 40, "_actionable": 0, "_pct_done": null}, {"uni": "CAM", "display": "Cambridge", "Done": 0, "In progress": 0, "Needs updating": 0, "Not applicable": 5, "Not yet logged": 31, "_total": 36, "_actionable": 0, "_pct_done": null}, {"uni": "GS", "display": "Goldman Sachs", "Done": 0, "In progress": 0, "Needs updating": 0, "Not applicable": 0, "Not yet logged": 9, "_total": 9, "_actionable": 0, "_pct_done": null}, {"uni": "BOC", "display": "SDA Bocconi", "Done": 0, "In progress": 0, "Needs updating": 0, "Not applicable": 2, "Not yet logged": 4, "_total": 6, "_actionable": 0, "_pct_done": null}, {"uni": "UTOR", "display": "U of Toronto", "Done": 0, "In progress": 0, "Needs updating": 0, "Not applicable": 2, "Not yet logged": 3, "_total": 5, "_actionable": 0, "_pct_done": null}, {"uni": "STAN", "display": "Stanford", "Done": 0, "In progress": 0, "Needs updating": 0, "Not applicable": 1, "Not yet logged": 3, "_total": 4, "_actionable": 0, "_pct_done": null}, {"uni": "HEC", "display": "HEC Paris", "Done": 0, "In progress": 0, "Needs updating": 0, "Not applicable": 1, "Not yet logged": 2, "_total": 3, "_actionable": 0, "_pct_done": null}, {"uni": "NU", "display": "Northwestern", "Done": 0, "In progress": 0, "Needs updating": 0, "Not applicable": 0, "Not yet logged": 1, "_total": 1, "_actionable": 0, "_pct_done": null}], "uni_action": [{"uni": "OXF", "display": "Oxford", "Remove": 144, "Replace": 11, "Replace (Accordion)": 0, "Replace (Choice)": 0, "Content missing": 0, "_total": 155}, {"uni": "LSE", "display": "LSE", "Remove": 32, "Replace": 6, "Replace (Accordion)": 6, "Replace (Choice)": 4, "Content missing": 6, "_total": 54}, {"uni": "MIT", "display": "MIT", "Remove": 39, "Replace": 14, "Replace (Accordion)": 0, "Replace (Choice)": 0, "Content missing": 0, "_total": 53}], "pres_rem": [{"status": "ACTIVE", "Done": 163, "In progress": 1, "Needs updating": 6, "Not applicable": 1, "Not yet logged": 633, "_total": 804}, {"status": "SCHEDULED", "Done": 116, "In progress": 1, "Needs updating": 0, "Not applicable": 390, "Not yet logged": 253, "_total": 760}, {"status": "PLANNED", "Done": 1, "In progress": 0, "Needs updating": 0, "Not applicable": 197, "Not yet logged": 36, "_total": 234}, {"status": "MASTER", "Done": 251, "In progress": 59, "Needs updating": 17, "Not applicable": 4, "Not yet logged": 214, "_total": 545}, {"status": "COMPLETE", "Done": 2, "In progress": 0, "Needs updating": 0, "Not applicable": 0, "Not yet logged": 10, "_total": 12}, {"status": "CANCELLED", "Done": 0, "In progress": 0, "Needs updating": 0, "Not applicable": 5, "Not yet logged": 6, "_total": 11}, {"status": "Other", "Done": 3, "In progress": 1, "Needs updating": 0, "Not applicable": 0, "Not yet logged": 17, "_total": 21}], "pres_action": [{"status": "ACTIVE", "Remove": 2, "Replace": 1, "Replace (Accordion)": 0, "Replace (Choice)": 0, "Content missing": 0, "_total": 3}, {"status": "SCHEDULED", "Remove": 3, "Replace": 1, "Replace (Accordion)": 0, "Replace (Choice)": 0, "Content missing": 0, "_total": 4}, {"status": "MASTER", "Remove": 206, "Replace": 29, "Replace (Accordion)": 6, "Replace (Choice)": 4, "Content missing": 6, "_total": 251}, {"status": "Other", "Remove": 4, "Replace": 0, "Replace (Accordion)": 0, "Replace (Choice)": 0, "Content missing": 0, "_total": 4}], "rem_action": [{"rem": "Done", "Remove": 173, "Replace": 30, "Replace (Accordion)": 6, "Replace (Choice)": 4, "Content missing": 6, "_total": 219}, {"rem": "In progress", "Remove": 41, "Replace": 1, "Replace (Accordion)": 0, "Replace (Choice)": 0, "Content missing": 0, "_total": 42}, {"rem": "Needs updating", "Remove": 1, "Replace": 0, "Replace (Accordion)": 0, "Replace (Choice)": 0, "Content missing": 0, "_total": 1}], "PRES_ORDER": ["ACTIVE", "SCHEDULED", "PLANNED", "MASTER", "COMPLETE", "CANCELLED", "Other"], "REM_ORDER": ["Done", "In progress", "Needs updating", "Not applicable", "Not yet logged"], "ACTION_ORDER": ["Remove", "Replace", "Replace (Accordion)", "Replace (Choice)", "Content missing"]}};
+
+// Tabs — keep tabbar stuck at top; logos scroll up
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.setAttribute('aria-selected', 'false'));
+    btn.setAttribute('aria-selected', 'true');
+    document.querySelectorAll('.tab-panel').forEach(p => p.removeAttribute('data-active'));
+    document.getElementById('panel-' + btn.dataset.tab).setAttribute('data-active', 'true');
+    // If page is scrolled past the hero, keep the tabbar pinned at top
+    // (don't snap user back up to the logos). If above the tabbar, leave them where they are.
+    const tabbar = document.querySelector('.tabbar');
+    if (tabbar) {
+      const top = tabbar.getBoundingClientRect().top + window.scrollY;
+      if (window.scrollY > top) {
+        window.scrollTo({top: top, behavior: 'instant'});
+      }
+    }
+  });
+});
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m]);
+}
+const C = {
+  blue:'#1376D4', blue700:'#0F5FAB', blue50:'#EAF3FC',
+  yellow:'#FECF48', black:'#080808', ink2:'#2C2F33', ink3:'#5A5F66',
+  green:'#2BAA52', lmGreen:'#8DC63F', red:'#C53D3D', purple:'#6F42C1'
+};
+Chart.defaults.font.family = '"proxima-nova","Proxima Nova","Inter",-apple-system,sans-serif';
+Chart.defaults.color = C.ink2;
+
+function buildSortableTable(tableEl, columns, rows, defaultSort) {
+  let sortKey = defaultSort.key, sortDir = defaultSort.dir;
+  function render() {
+    const sorted = rows.slice();
+    const col = columns.find(c => c.key === sortKey);
+    if (col) {
+      sorted.sort((a, b) => {
+        const va = (col.sortBy ? col.sortBy(a) : a[sortKey]);
+        const vb = (col.sortBy ? col.sortBy(b) : b[sortKey]);
+        const aNull = va == null, bNull = vb == null;
+        if (aNull && bNull) return 0;
+        if (aNull) return 1;
+        if (bNull) return -1;
+        if (typeof va === 'number' && typeof vb === 'number') return sortDir === 'desc' ? vb - va : va - vb;
+        return sortDir === 'desc' ? String(vb).localeCompare(String(va)) : String(va).localeCompare(String(vb));
+      });
+    }
+    let h = '<thead><tr>';
+    for (const c of columns) {
+      const ind = (c.key === sortKey) ? (sortDir === 'desc' ? '▼' : '▲') : '';
+      const cls = (c.align === 'right' ? ' num' : '') + ' sortable';
+      h += '<th class="' + cls + '" data-key="' + c.key + '" style="' + (c.width ? 'width:' + c.width + ';' : '') + '">' + esc(c.label) + '<span class="sort-ind">' + ind + '</span></th>';
+    }
+    h += '</tr></thead><tbody>';
+    for (const r of sorted) {
+      h += '<tr>';
+      for (const c of columns) {
+        h += '<td class="' + (c.align === 'right' ? 'num' : '') + '">' + c.render(r) + '</td>';
+      }
+      h += '</tr>';
+    }
+    h += '</tbody>';
+    tableEl.innerHTML = h;
+    tableEl.querySelectorAll('thead th').forEach(th => {
+      th.addEventListener('click', () => {
+        const k = th.dataset.key;
+        if (k === sortKey) sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+        else { sortKey = k; sortDir = 'desc'; }
+        render();
+      });
+    });
+  }
+  render();
+}
+
+(function() {
+  const entries = Object.entries(DATA.uni_counts).sort((a,b) => b[1]-a[1]).slice(0,10);
+  new Chart(document.getElementById('chart-uni-workload'), {
+    type:'bar',
+    data:{ labels: entries.map(e => (DATA.uni_name[e[0]] || e[0]) + ' (' + e[0] + ')'),
+      datasets:[{ data: entries.map(e => e[1]), backgroundColor:C.blue, borderRadius:6, maxBarThickness:36 }]},
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{ x:{beginAtZero:true, grid:{color:'#EFF1F4'}}, y:{grid:{display:false}} } }
+  });
+})();
+
+(function() {
+  const labels = ['Not yet logged','Not applicable','Change Log Done','In Progress','Needs Updating'];
+  const values = [DATA.rem_counts['']||0, DATA.rem_counts['0. NOT APPLICABLE']||0,
+    DATA.rem_counts['2. CHANGE LOG DONE']||0, DATA.rem_counts['1. CHANGE LOG IN PROGRESS']||0,
+    DATA.rem_counts['LP - NEEDS UPDATING ']||0];
+  new Chart(document.getElementById('chart-rem-mix'), {
+    type:'doughnut',
+    data:{ labels, datasets:[{ data:values,
+      backgroundColor:[C.ink3,'#B7BCC4',C.green,C.yellow,C.red], borderColor:'#fff', borderWidth:2 }]},
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'55%',
+      plugins:{ legend:{position:'right', labels:{boxWidth:12, font:{size:12}}} } }
+  });
+})();
+
+(function() {
+  const s = DATA.status_counts;
+  new Chart(document.getElementById('chart-pres-status'), {
+    type:'bar',
+    data:{ labels:['Active','Scheduled','Planned','Master','Cancelled','Complete'],
+      datasets:[{ data:[s['ACTIVE']||0, s['SCHEDULED']||0, s['PLANNED']||0, s['MASTER']||0, s['CANCELLED']||0, (s['COMPLETE']||0)+(s['COMPLETED']||0)],
+        backgroundColor:[C.green, C.blue, C.yellow, '#B7BCC4', C.red, C.purple], borderRadius:6, maxBarThickness:42 }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{ y:{beginAtZero:true, grid:{color:'#EFF1F4'}}, x:{grid:{display:false}} } }
+  });
+})();
+
+(function() {
+  const c = DATA.comp_counts;
+  new Chart(document.getElementById('chart-component'), {
+    type:'pie',
+    data:{ labels:['Book','Video','Forum'], datasets:[{ data:[c['BOOK']||0, c['VIDEO']||0, c['FORUM']||0],
+      backgroundColor:[C.purple, C.blue, C.yellow], borderColor:'#fff', borderWidth:2 }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{position:'right'} } }
+  });
+})();
+
+(function() {
+  const entries = Object.entries(DATA.active_pres_by_uni).sort((a,b) => b[1]-a[1]);
+  new Chart(document.getElementById('chart-active-pres'), {
+    type:'bar',
+    data:{ labels: entries.map(e => (DATA.uni_name[e[0]] || e[0])),
+      datasets:[{ data: entries.map(e => e[1]), backgroundColor:C.green, borderRadius:6, maxBarThickness:30 }]},
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{ x:{beginAtZero:true, grid:{color:'#EFF1F4'}}, y:{grid:{display:false}} } }
+  });
+})();
+
+(function() {
+  const entries = Object.entries(DATA.ai_by_uni).filter(x => x[0]).sort((a,b) => b[1]-a[1]);
+  new Chart(document.getElementById('chart-action-by-uni'), {
+    type:'bar',
+    data:{ labels: entries.map(e => (DATA.uni_name[e[0]] || e[0])),
+      datasets:[{ data: entries.map(e => e[1]), backgroundColor:C.yellow, borderColor:C.black, borderWidth:1, borderRadius:6, maxBarThickness:36 }]},
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{ x:{beginAtZero:true, grid:{color:'#EFF1F4'}}, y:{grid:{display:false}} } }
+  });
+})();
+
+(function() {
+  const impacts = ['LOW','MEDIUM','HIGH'];
+  const actionTypes = ['Remove','Replace','Replace (Accordion)','Replace (Choice)','Content missing'];
+  const colors = [C.ink3, C.blue, C.blue700, C.purple, C.yellow];
+  const ds = actionTypes.map((a, i) => ({
+    label:a, data: impacts.map(imp => (DATA.imp_action[imp] || {})[a] || 0),
+    backgroundColor: colors[i], borderRadius:4
+  }));
+  new Chart(document.getElementById('chart-impact-action'), {
+    type:'bar', data:{ labels:impacts, datasets:ds },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'top', align:'end', labels:{boxWidth:12, font:{size:11}}} },
+      scales:{ x:{stacked:true, grid:{display:false}}, y:{stacked:true, beginAtZero:true, grid:{color:'#EFF1F4'}} } }
+  });
+})();
+
+(function() {
+  const e = Object.entries(DATA.ai_by_comp).sort((a,b) => b[1]-a[1]);
+  new Chart(document.getElementById('chart-ai-component'), {
+    type:'doughnut',
+    data:{ labels: e.map(x => x[0]), datasets:[{ data: e.map(x => x[1]),
+      backgroundColor:[C.purple, C.blue, C.yellow], borderColor:'#fff', borderWidth:2 }]},
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'50%',
+      plugins:{ legend:{position:'right'} } }
+  });
+})();
+
+// UNI sortable table
+(function() {
+  const rows = Object.values(DATA.uni_agg);
+  const cols = [
+    {key:'uni', label:'UNI', align:'left', width:'70px',
+      render: r => '<span class="chip uni">' + esc(r.uni) + '</span>'},
+    {key:'display', label:'University', align:'left', width:'180px',
+      render: r => '<span class="td-name">' + esc(r.display) + '</span>'},
+    {key:'total', label:'Rows', align:'right', width:'70px', render: r => r.total},
+    {key:'active_pres', label:'Active', align:'right', width:'70px', render: r => r.active_pres || 0},
+    {key:'actionable', label:'Actionable', align:'right', width:'90px', render: r => r.actionable || 0},
+    {key:'done', label:'Done', align:'right', width:'70px', render: r => r.done || 0},
+    {key:'in_progress', label:'In Prog.', align:'right', width:'70px', render: r => r.in_progress || 0},
+    {key:'needs_update', label:'Need Upd.', align:'right', width:'85px', render: r => r.needs_update || 0},
+    {key:'pct_done', label:'% Done', align:'right', width:'90px',
+      sortBy: r => r.pct_done === null ? -1 : r.pct_done,
+      render: r => r.pct_done === null ? '<span style="color:var(--ink-3)">—</span>' : '<b>' + r.pct_done + '%</b>'},
+    {key:'progress', label:'Progress', align:'left',
+      sortBy: r => r.pct_done === null ? -1 : r.pct_done,
+      render: r => {
+        if (!r.actionable) return '<div class="progress-bar"></div>';
+        const tot = r.actionable, done = r.done || 0, ip = r.in_progress || 0, nu = r.needs_update || 0;
+        return '<div class="progress-bar"><span class="done" style="width:' + (100*done/tot) + '%"></span>' +
+          '<span class="ip" style="left:' + (100*done/tot) + '%;width:' + (100*ip/tot) + '%"></span>' +
+          '<span class="nu" style="left:' + (100*(done+ip)/tot) + '%;width:' + (100*nu/tot) + '%"></span></div>';
+      }}
+  ];
+  buildSortableTable(document.getElementById('t-uni'), cols, rows, {key:'pct_done', dir:'desc'});
+})();
+
+// Action matrix
+(function() {
+  const rows = DATA.uni_action_matrix.slice();
+  function heatCls(v, max) {
+    if (!v) return 'heat-0';
+    const r = v/max;
+    if (r < 0.15) return 'heat-low';
+    if (r < 0.5) return 'heat-mid';
+    return 'heat-high';
+  }
+  const max = Math.max.apply(null, rows.map(r => r.total));
+  const cols = [
+    {key:'uni', label:'UNI', align:'left', width:'70px',
+      render: r => '<span class="chip uni">' + esc(r.uni) + '</span>'},
+    {key:'display', label:'University', align:'left', width:'180px',
+      render: r => '<span class="td-name">' + esc(r.display) + '</span>'},
+    {key:'total', label:'Total', align:'right', width:'70px', render: r => '<b>' + r.total + '</b>'},
+    {key:'Remove', label:'Remove', align:'right', width:'80px',
+      render: r => '<span class="heat-cell ' + heatCls(r.Remove, max) + '">' + (r.Remove||0) + '</span>'},
+    {key:'Replace', label:'Replace', align:'right', width:'80px',
+      render: r => '<span class="heat-cell ' + heatCls(r.Replace, max) + '">' + (r.Replace||0) + '</span>'},
+    {key:'Replace (Accordion)', label:'Replace (Acc.)', align:'right', width:'110px',
+      render: r => '<span class="heat-cell ' + heatCls(r['Replace (Accordion)'], max) + '">' + (r['Replace (Accordion)']||0) + '</span>'},
+    {key:'Replace (Choice)', label:'Replace (Choice)', align:'right', width:'120px',
+      render: r => '<span class="heat-cell ' + heatCls(r['Replace (Choice)'], max) + '">' + (r['Replace (Choice)']||0) + '</span>'},
+    {key:'Content missing', label:'Content missing', align:'right', width:'130px',
+      render: r => '<span class="heat-cell ' + heatCls(r['Content missing'], max) + '">' + (r['Content missing']||0) + '</span>'},
+    {key:'high', label:'High', align:'right', width:'60px',
+      render: r => '<span class="chip impact-high">' + r.high + '</span>'},
+    {key:'medium', label:'Med', align:'right', width:'60px',
+      render: r => '<span class="chip impact-med">' + r.medium + '</span>'},
+    {key:'low', label:'Low', align:'right', width:'60px',
+      render: r => '<span class="chip impact-low">' + r.low + '</span>'}
+  ];
+  buildSortableTable(document.getElementById('t-action-matrix'), cols, rows, {key:'total', dir:'desc'});
+})();
+
+// Cross-tabs
+(function() {
+  if (!DATA.crosstab) return;
+  const CT = DATA.crosstab;
+  function heatCls(v, max) {
+    if (!v) return 'heat-0';
+    const r = v/max;
+    if (r < 0.15) return 'heat-low';
+    if (r < 0.5) return 'heat-mid';
+    return 'heat-high';
+  }
+  function heatCell(v, max) {
+    return '<span class="heat-cell ' + heatCls(v, max) + '">' + (v || 0) + '</span>';
+  }
+
+  // UNI x PRES STATUS
+  (function() {
+    const rows = CT.uni_pres.slice();
+    const max = Math.max.apply(null, rows.flatMap(r => CT.PRES_ORDER.map(p => r[p])));
+    const cols = [
+      {key:'uni', label:'UNI', align:'left', width:'70px',
+        render: r => '<span class="chip uni">' + esc(r.uni) + '</span>'},
+      {key:'display', label:'University', align:'left', width:'170px',
+        render: r => '<span class="td-name">' + esc(r.display) + '</span>'}
+    ];
+    CT.PRES_ORDER.forEach(p => {
+      cols.push({key:p, label:p, align:'right', width:'90px',
+        render: r => heatCell(r[p], max)});
+    });
+    cols.push({key:'_total', label:'Total', align:'right', width:'80px',
+      render: r => '<b>' + r._total + '</b>'});
+    buildSortableTable(document.getElementById('t-x-uni-pres'), cols, rows, {key:'_total', dir:'desc'});
+  })();
+
+  // UNI x REMEDIATION
+  (function() {
+    const rows = CT.uni_rem.slice();
+    const max = Math.max.apply(null, rows.flatMap(r => CT.REM_ORDER.map(s => r[s])));
+    const cols = [
+      {key:'uni', label:'UNI', align:'left', width:'70px',
+        render: r => '<span class="chip uni">' + esc(r.uni) + '</span>'},
+      {key:'display', label:'University', align:'left', width:'170px',
+        render: r => '<span class="td-name">' + esc(r.display) + '</span>'}
+    ];
+    CT.REM_ORDER.forEach(s => {
+      cols.push({key:s, label:s, align:'right', width:'110px',
+        render: r => heatCell(r[s], max)});
+    });
+    cols.push({key:'_actionable', label:'Actionable', align:'right', width:'95px',
+      render: r => '<b>' + r._actionable + '</b>'});
+    cols.push({key:'_pct_done', label:'% Done', align:'right', width:'80px',
+      sortBy: r => r._pct_done == null ? -1 : r._pct_done,
+      render: r => r._pct_done == null ? '<span style="color:var(--ink-3)">—</span>' : '<b>' + r._pct_done + '%</b>'});
+    buildSortableTable(document.getElementById('t-x-uni-rem'), cols, rows, {key:'_pct_done', dir:'desc'});
+  })();
+
+  // PRES x REM
+  (function() {
+    const rows = CT.pres_rem.slice();
+    const max = Math.max.apply(null, rows.flatMap(r => CT.REM_ORDER.map(s => r[s])));
+    const cols = [
+      {key:'status', label:'Pres Status', align:'left', width:'140px',
+        render: r => '<span class="td-name">' + esc(r.status) + '</span>'}
+    ];
+    CT.REM_ORDER.forEach(s => {
+      cols.push({key:s, label:s, align:'right', width:'120px',
+        render: r => heatCell(r[s], max)});
+    });
+    cols.push({key:'_total', label:'Total', align:'right', width:'90px',
+      render: r => '<b>' + r._total + '</b>'});
+    buildSortableTable(document.getElementById('t-x-pres-rem'), cols, rows, {key:'_total', dir:'desc'});
+  })();
+
+  // PRES x ACTION
+  (function() {
+    const rows = CT.pres_action.slice();
+    const max = Math.max.apply(null, rows.flatMap(r => CT.ACTION_ORDER.map(a => r[a])));
+    const cols = [
+      {key:'status', label:'Pres Status', align:'left', width:'140px',
+        render: r => '<span class="td-name">' + esc(r.status) + '</span>'}
+    ];
+    CT.ACTION_ORDER.forEach(a => {
+      cols.push({key:a, label:a, align:'right', width:'120px',
+        render: r => heatCell(r[a], max)});
+    });
+    cols.push({key:'_total', label:'Total', align:'right', width:'80px',
+      render: r => '<b>' + r._total + '</b>'});
+    buildSortableTable(document.getElementById('t-x-pres-action'), cols, rows, {key:'_total', dir:'desc'});
+  })();
+
+  // REM x ACTION
+  (function() {
+    const rows = CT.rem_action.slice();
+    const max = Math.max.apply(null, rows.flatMap(r => CT.ACTION_ORDER.map(a => r[a])));
+    const cols = [
+      {key:'rem', label:'Remediation Status', align:'left', width:'180px',
+        render: r => '<span class="td-name">' + esc(r.rem) + '</span>'}
+    ];
+    CT.ACTION_ORDER.forEach(a => {
+      cols.push({key:a, label:a, align:'right', width:'120px',
+        render: r => heatCell(r[a], max)});
+    });
+    cols.push({key:'_total', label:'Total', align:'right', width:'80px',
+      render: r => '<b>' + r._total + '</b>'});
+    buildSortableTable(document.getElementById('t-x-rem-action'), cols, rows, {key:'_total', dir:'desc'});
+  })();
+})();
+
+// Replace blocks
+(function() {
+  const container = document.getElementById('replace-blocks');
+  const html = DATA.replace_summary.map((rs, idx) => {
+    const buckets = rs.buckets.map(b => {
+      const samples = b.samples.map(s =>
+        '<div class="sample"><b>' + esc(s.course) + '</b> · ' + esc(s.module) +
+        ' · <span style="color:var(--ink-3)">' + esc(s.action) + ' · ' + esc(s.impact) + '</span><br>' +
+        '<span style="color:var(--ink-3)">From:</span> ' + esc(s.original) + '<br>' +
+        '<span style="color:var(--ink-3)">To:</span> ' + esc(s.new) + '</div>').join('');
+      return '<div class="bucket-row"><div class="bucket-name">' + esc(b.bucket) + '</div>' +
+        '<div class="bucket-count">' + b.count + '</div>' +
+        '<div class="bucket-samples">' + (samples || '<i style="color:var(--ink-3)">—</i>') + '</div></div>';
+    }).join('');
+    return '<div class="rep-block" data-open="' + (idx === 0 ? 'true' : 'false') + '">' +
+      '<div class="rep-head"><div class="rep-title"><span class="rep-toggle"></span>' +
+      '<span class="chip uni">' + esc(rs.uni) + '</span>' + esc(rs.display) + '</div>' +
+      '<div class="rep-meta"><b>' + rs.total + '</b> Replace / Content-missing items</div></div>' +
+      '<div class="rep-body">' + buckets + '</div></div>';
+  }).join('');
+  container.innerHTML = html;
+  container.querySelectorAll('.rep-head').forEach(h => {
+    h.addEventListener('click', () => {
+      const block = h.parentElement;
+      block.setAttribute('data-open', block.getAttribute('data-open') === 'true' ? 'false' : 'true');
+    });
+  });
+})();
+
+// Priority table
+(function() {
+  const impactRank = {HIGH:0, MEDIUM:1};
+  const rows = DATA.hm_items.slice();
+  const cols = [
+    {key:'impact', label:'Impact', align:'left', width:'90px',
+      sortBy: r => impactRank[r.impact] != null ? impactRank[r.impact] : 9,
+      render: r => '<span class="chip ' + (r.impact === 'HIGH' ? 'impact-high' : 'impact-med') + '">' + esc(r.impact) + '</span>'},
+    {key:'uni', label:'UNI', align:'left', width:'70px',
+      render: r => '<span class="chip uni">' + esc(r.uni) + '</span>'},
+    {key:'course', label:'Course', align:'left', width:'130px', render: r => esc(r.course)},
+    {key:'module', label:'Module', align:'right', width:'70px',
+      sortBy: r => parseInt((r.module || '').replace(/[^0-9]/g, '')) || 0,
+      render: r => esc(r.module)},
+    {key:'component', label:'Component', align:'left', width:'90px',
+      render: r => {
+        const cls = r.component === 'BOOK' ? 'comp-book' : r.component === 'VIDEO' ? 'comp-video' : 'comp-forum';
+        return '<span class="chip ' + cls + '">' + esc(r.component) + '</span>';
+      }},
+    {key:'action', label:'Action', align:'left', width:'140px',
+      render: r => {
+        const cls = r.action === 'Remove' ? 'action-remove'
+          : (r.action && r.action.startsWith('Replace')) ? 'action-replace' : 'action-missing';
+        return '<span class="chip ' + cls + '">' + esc(r.action) + '</span>';
+      }},
+    {key:'component_details', label:'Asset / detail', align:'left', render: r => esc(r.component_details)}
+  ];
+  buildSortableTable(document.getElementById('t-priority'), cols, rows, {key:'impact', dir:'asc'});
+})();
+
+// Upcoming
+(function() {
+  const rows = (DATA.upcoming_active || []).slice();
+  const cols = [
+    {key:'go_live', label:'Go-live', align:'left', width:'110px', render: r => esc(r.go_live)},
+    {key:'uni', label:'UNI', align:'left', width:'70px',
+      render: r => '<span class="chip uni">' + esc(r.uni) + '</span>'},
+    {key:'course', label:'Course', align:'left', width:'140px', render: r => esc(r.course)},
+    {key:'module', label:'Module', align:'right', width:'70px',
+      sortBy: r => parseInt((r.module || '').replace(/[^0-9]/g, '')) || 0,
+      render: r => esc(r.module)},
+    {key:'component', label:'Component', align:'left', width:'90px',
+      render: r => {
+        const cls = r.component === 'BOOK' ? 'comp-book' : r.component === 'VIDEO' ? 'comp-video' : 'comp-forum';
+        return '<span class="chip ' + cls + '">' + esc(r.component) + '</span>';
+      }},
+    {key:'pres', label:'Presentation', align:'left', render: r => esc(r.pres)}
+  ];
+  buildSortableTable(document.getElementById('t-upcoming'), cols, rows, {key:'go_live', dir:'asc'});
+})();
+
+// PIVOT
+(function() {
+  let pSortKey = 'pct_done', pSortDir = 'desc';
+  const sortableCols = [
+    {key:'name', label:'UNI · TAB · Course', align:'left', sortable:false},
+    {key:'total', label:'Rows', align:'right'},
+    {key:'active_pres', label:'Active', align:'right'},
+    {key:'action_items', label:'Action', align:'right'},
+    {key:'high', label:'High', align:'right'},
+    {key:'done', label:'Done', align:'right'},
+    {key:'in_progress', label:'In Prog.', align:'right'},
+    {key:'needs_update', label:'Need Upd.', align:'right'},
+    {key:'pct_done', label:'% Done', align:'right'}
+  ];
+
+  function sortNodes(nodes) {
+    const sorted = nodes.slice();
+    sorted.sort((a,b) => {
+      const va = pSortKey === 'pct_done' ? (a.pct_done === null ? -1 : a.pct_done) : (a[pSortKey] || 0);
+      const vb = pSortKey === 'pct_done' ? (b.pct_done === null ? -1 : b.pct_done) : (b[pSortKey] || 0);
+      return pSortDir === 'desc' ? vb - va : va - vb;
+    });
+    return sorted;
+  }
+
+  function fmtPct(node) {
+    if (node.pct_done == null || !node.actionable) return '<span class="small">—</span>';
+    return node.pct_done + '%';
+  }
+  function fmtBarPct(node) {
+    if (!node.actionable) return '';
+    return '<div class="pivot-bar"><span style="width:' + node.pct_done + '%"></span></div>';
+  }
+
+  const collapsed = {};
+
+  function makeRow(lvlClass, indent, labelHTML, node, dataAttrs) {
+    return '<div class="pivot-row ' + lvlClass + '" ' + dataAttrs + '>' +
+      '<div class="pivot-cell ' + indent + '">' + labelHTML + '</div>' +
+      '<div class="pivot-cell num">' + (node.total || 0) + '</div>' +
+      '<div class="pivot-cell num">' + (node.active_pres || 0) + '</div>' +
+      '<div class="pivot-cell num">' + (node.action_items || 0) + '</div>' +
+      '<div class="pivot-cell num">' + (node.high || 0) + '</div>' +
+      '<div class="pivot-cell num">' + (node.done || 0) + '</div>' +
+      '<div class="pivot-cell num">' + (node.in_progress || 0) + '</div>' +
+      '<div class="pivot-cell num">' + (node.needs_update || 0) + '</div>' +
+      '<div class="pivot-cell pct-cell">' + fmtPct(node) + fmtBarPct(node) + '</div></div>';
+  }
+
+  function renderHead() {
+    const head = document.getElementById('pivot-head');
+    head.innerHTML = sortableCols.map(c => {
+      if (c.sortable === false) return '<div>' + esc(c.label) + '</div>';
+      const ind = (c.key === pSortKey) ? (pSortDir === 'desc' ? '▼' : '▲') : '';
+      return '<div class="sortable pivot-cell ' + (c.align === 'right' ? 'num' : '') + '" data-key="' + c.key + '">' +
+        esc(c.label) + '<span class="sort-ind">' + ind + '</span></div>';
+    }).join('');
+    head.querySelectorAll('.sortable').forEach(d => {
+      d.addEventListener('click', () => {
+        const k = d.dataset.key;
+        if (k === pSortKey) pSortDir = pSortDir === 'desc' ? 'asc' : 'desc';
+        else { pSortKey = k; pSortDir = 'desc'; }
+        renderHead(); renderBody(); applyVisibility();
+      });
+    });
+  }
+
+  function renderBody() {
+    const out = [];
+    const unisSorted = sortNodes(DATA.pivot);
+    unisSorted.forEach((u, ui) => {
+      const uniKey = 'u' + u.uni;
+      const uniLabel = '<span class="toggle" data-toggle="' + uniKey + '">▸</span>' +
+        '<span class="uni-code">' + esc(u.uni) + '</span><b>' + esc(u.display) + '</b>';
+      out.push(makeRow('lvl1', 'lvl1', uniLabel, u, 'data-uni-id="' + uniKey + '"'));
+      const tabsSorted = sortNodes(u.tabs);
+      tabsSorted.forEach((t, ti) => {
+        const tabKey = uniKey + '-t' + ti;
+        const hasCourses = t.courses && t.courses.length > 0;
+        const togCls = hasCourses ? 'toggle' : 'toggle empty';
+        const tabLabel = '<span class="' + togCls + '" data-toggle="' + tabKey + '">▸</span>' + esc(t.tab);
+        out.push(makeRow('lvl2', 'lvl2', tabLabel, t, 'data-parent="' + uniKey + '" data-tab-id="' + tabKey + '"'));
+        const coursesSorted = sortNodes(t.courses || []);
+        coursesSorted.forEach(c => {
+          out.push(makeRow('lvl3', 'lvl3', esc(c.course), c,
+            'data-parent="' + tabKey + '" data-parent-uni="' + uniKey + '"'));
+        });
+      });
+    });
+    document.getElementById('pivot-body').innerHTML = out.join('');
+  }
+
+  function applyVisibility() {
+    document.querySelectorAll('.pivot-row.lvl2').forEach(el => {
+      el.style.display = collapsed[el.dataset.parent] ? 'none' : '';
+    });
+    document.querySelectorAll('.pivot-row.lvl3').forEach(el => {
+      el.style.display = (collapsed[el.dataset.parent] || collapsed[el.dataset.parentUni]) ? 'none' : '';
+    });
+    document.querySelectorAll('.toggle').forEach(t => {
+      if (t.classList.contains('empty')) return;
+      t.textContent = collapsed[t.dataset.toggle] ? '▸' : '▾';
+    });
+  }
+
+  function initCollapsed() {
+    DATA.pivot.forEach(u => {
+      collapsed['u' + u.uni] = true;
+      u.tabs.forEach((t, ti) => collapsed['u' + u.uni + '-t' + ti] = true);
+    });
+  }
+  initCollapsed();
+  renderHead(); renderBody(); applyVisibility();
+
+  document.getElementById('pivot-body').addEventListener('click', (e) => {
+    const t = e.target.closest('.toggle');
+    if (!t || t.classList.contains('empty')) return;
+    const key = t.dataset.toggle;
+    collapsed[key] = !collapsed[key];
+    applyVisibility();
+  });
+
+  document.getElementById('pv-expand-all').addEventListener('click', () => {
+    Object.keys(collapsed).forEach(k => collapsed[k] = false);
+    applyVisibility();
+  });
+  document.getElementById('pv-collapse-all').addEventListener('click', () => {
+    Object.keys(collapsed).forEach(k => collapsed[k] = true);
+    applyVisibility();
+  });
+  document.getElementById('pv-l2-only').addEventListener('click', () => {
+    Object.keys(collapsed).forEach(k => {
+      collapsed[k] = k.includes('-t');
+    });
+    applyVisibility();
+  });
+})();
+</script>
+</body>
+</html>
