@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="Accessibility-PreCheck-testplans.js"></script>
 <style>
 :root{
   --brand-yellow:#FECF48; --brand-blue:#1376D4; --brand-blue-700:#0F5FAB;
@@ -178,6 +179,55 @@ a:hover{text-decoration:underline}
 .pill-v.err{background:#eef0f2;color:var(--ink-3)}
 .section-head .desc{margin-left:4px}
 
+/* Top-level tabs */
+.maintabs{max-width:1100px;margin:0 auto;padding:0 24px;display:flex;gap:6px}
+.maintab{appearance:none;border:0;background:transparent;font:inherit;font-weight:700;font-size:14px;color:var(--ink-3);padding:14px 18px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.maintab.on{color:var(--brand-blue-700);border-bottom-color:var(--brand-blue)}
+.maintab:not(.on):hover{color:var(--ink-2)}
+.maintabbar{background:#fff;border-bottom:1px solid var(--line)}
+.tabpane[hidden]{display:none}
+
+/* Auto / Manual badge on a check */
+.mode-badge{display:inline-block;font-size:10px;font-weight:800;padding:2px 7px;border-radius:5px;letter-spacing:.4px;text-transform:uppercase;margin-left:8px;vertical-align:middle}
+.mode-badge.auto{background:#E8F0FE;color:var(--brand-blue-700)}
+.mode-badge.manual{background:#F3EAFB;color:#6b2fae}
+
+/* Manual (test-plan) checklist cards */
+.mcard{background:#fff;border:1px solid var(--line);border-left:5px solid #8b5cc7;border-radius:10px;margin-bottom:12px;overflow:hidden}
+.mcard-top{display:flex;align-items:flex-start;gap:11px;padding:13px 15px;cursor:pointer}
+.mcard-ic{flex:none;width:24px;height:24px;border-radius:6px;background:#F3EAFB;color:#6b2fae;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;margin-top:1px}
+.mcard-body{flex:1}
+.mcard-title{font-weight:700;font-size:14px;margin:0 0 3px}
+.mcard-meta{font-size:11.5px;color:var(--ink-3)}
+.wcag-tag{display:inline-block;background:var(--bg-alt);border:1px solid var(--line);border-radius:5px;padding:1px 7px;font-size:11px;color:var(--ink-2);font-weight:700;margin-right:6px}
+.mcard-detail{display:none;padding:0 15px 15px 50px;font-size:13px;color:var(--ink-2)}
+.mcard.open .mcard-detail{display:block}
+.mcard-detail .lbl{font-weight:800;color:var(--ink);font-size:12px;text-transform:uppercase;letter-spacing:.3px;margin:10px 0 4px}
+.mcard-detail .proc{white-space:pre-wrap;background:var(--bg-alt);border-radius:8px;padding:11px 13px;line-height:1.55}
+.mcard .chev{flex:none;color:var(--ink-3);font-size:12px;margin-top:4px;transition:.15s}
+.mcard.open .chev{transform:rotate(90deg)}
+.file-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.fchip{appearance:none;border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 13px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:7px}
+.fchip.on{border-color:var(--brand-blue);background:var(--brand-blue-50);color:var(--brand-blue-700)}
+.fchip .dot{width:8px;height:8px;border-radius:50%}
+.fchip .dot.pass{background:var(--pass)} .fchip .dot.warn{background:var(--warn)} .fchip .dot.fail{background:var(--fail)} .fchip .dot.err{background:var(--ink-3)}
+
+/* Alt-text review modal */
+.alt-overlay{position:fixed;inset:0;background:rgba(8,8,8,.55);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
+.alt-overlay[hidden]{display:none}
+.alt-box{background:#fff;border-radius:14px;max-width:920px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.alt-head{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid var(--line)}
+.alt-head b{font-size:15px}
+.alt-head .x{appearance:none;border:0;background:var(--bg-alt);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:15px}
+#altBody{padding:16px 20px;max-height:72vh;overflow:auto}
+.alt-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.alt-tbl th{text-align:left;background:var(--bg-alt);color:var(--ink-3);font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:9px 10px;border-bottom:1px solid var(--line)}
+.alt-tbl td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+.alt-tbl img{max-width:120px;max-height:92px;border:1px solid var(--line);border-radius:6px;display:block;cursor:zoom-in}
+#altZoom{position:fixed;display:none;max-width:70vw;max-height:75vh;border:3px solid #fff;border-radius:8px;box-shadow:0 12px 48px rgba(0,0,0,.5);z-index:60;pointer-events:none;background:#fff}
+.alt-tbl .noalt{color:var(--fail);font-weight:700}
+.alt-tbl .len{color:var(--ink-3);font-size:11.5px;margin-top:4px}
+
 @media print{
   .topbar,.dropzone,.priv,.filebar,.hero p,.no-print{display:none!important}
   body{background:#fff}
@@ -213,7 +263,12 @@ a:hover{text-decoration:underline}
   </div>
 </header>
 
-<div class="wrap">
+<div class="maintabbar"><div class="maintabs">
+  <button class="maintab on" id="mt-guide" onclick="showTab('guide')">Learning Accessibility Guidebook</button>
+  <button class="maintab" id="mt-test" onclick="showTab('test')">Test Plans for Accessibility Testing and Remediation</button>
+</div></div>
+
+<div class="wrap tabpane" id="paneGuide">
   <div class="hero">
     <span class="pill">Word stage · before PDF export</span>
     <h1>Storyboard Accessibility Pre-Check</h1>
@@ -244,8 +299,42 @@ a:hover{text-decoration:underline}
   </div>
 </div>
 
+<div class="wrap tabpane" id="paneTest" hidden>
+  <div class="hero">
+    <span class="pill">Word · PDF · PowerPoint · Excel</span>
+    <h1>Test Plans — Accessibility Testing &amp; Remediation</h1>
+    <p>Drop a <b>.docx, .pdf, .pptx or .xlsx</b> file. This tab runs the accessibility-team test plans: checks the tool can perform from the file are run automatically (<b>Auto</b>), and the rest are listed as a guided <b>Manual</b> checklist with the WCAG reference and the exact test procedure. Everything runs in your browser.</p>
+  </div>
+
+  <div class="error-box" id="errorBox2"></div>
+
+  <div class="dropzone" id="dropzone2">
+    <div class="dz-icon">🧪</div>
+    <h2>Drop your files here</h2>
+    <p>or <span class="browse">browse to choose files</span> &nbsp;·&nbsp; Word, PDF, PowerPoint, Excel &nbsp;·&nbsp; select several to check together</p>
+    <input type="file" id="fileInput2" accept=".docx,.pdf,.pptx,.xlsx" multiple style="display:none">
+  </div>
+  <div class="priv">🔒 Processed entirely in your browser — nothing is uploaded.</div>
+
+  <div class="spinner" id="spinner2"><div class="lds"></div><span id="spinnerMsg2">Analysing…</span></div>
+
+  <div id="results2">
+    <div class="filebar no-print" id="batchbar2"></div>
+    <div id="chips2" class="file-chips no-print"></div>
+    <div id="detail2"></div>
+  </div>
+</div>
+
 <div class="foot">
-  Checks are based on the <b>Learning Accessibility Guidebook</b> and WCAG 2.0 / PDF-UA best practice. Word files are checked against "Preparing a Word document" (p.16); PDFs are checked for structural accessibility essentials. This tool flags likely issues for human review; it does not replace Acrobat's full accessibility check (e.g. colour contrast, reading-order correctness).
+  Checks are based on the <b>Learning Accessibility Guidebook</b>, the accessibility team's <b>Test Plans</b> (Word/PDF/PPT/Excel), and WCAG 2.0 / PDF-UA best practice. Automated checks flag issues detectable from the file; manual checks are guided tester procedures. This tool does not replace Acrobat's full accessibility check or screen-reader (NVDA) testing.
+</div>
+
+<div class="alt-overlay" id="altOverlay" hidden onclick="if(event.target===this)closeAltTable()">
+  <div class="alt-box">
+    <div class="alt-head"><b id="altTitle">Alt-text review</b><button class="x" onclick="closeAltTable()">✕</button></div>
+    <div id="altBody"></div>
+  </div>
+  <img id="altZoom" alt="">
 </div>
 
 <script>
@@ -258,6 +347,14 @@ const $ = id => document.getElementById(id);
 
 // pdf.js worker
 if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// top-level tab switching
+function showTab(which){
+  $('paneGuide').hidden = which!=='guide';
+  $('paneTest').hidden  = which!=='test';
+  $('mt-guide').classList.toggle('on', which==='guide');
+  $('mt-test').classList.toggle('on', which==='test');
+}
 
 const dropzone = $('dropzone'), fileInput = $('fileInput');
 dropzone.addEventListener('click', ()=>fileInput.click());
@@ -289,9 +386,10 @@ async function processFiles(fileList){
   for(let i=0;i<valid.length;i++){
     const file = valid[i];
     $('spinnerMsg').textContent = `Analysing ${i+1} of ${valid.length}: ${file.name}`;
-    const rec = { name:file.name, size:file.size, type: /\.pdf$/i.test(file.name)?'pdf':'docx', results:null, error:null };
+    const rec = { name:file.name, size:file.size, type: /\.pdf$/i.test(file.name)?'pdf':'docx', results:null, error:null, buf:null };
     try{
       const buf = await file.arrayBuffer();
+      rec.buf = buf;
       if(rec.type==='docx'){
         const zip = await JSZip.loadAsync(buf);
         rec.results = runChecks(await readDocx(zip));
@@ -318,7 +416,7 @@ async function processFiles(fileList){
    Uses pdf.js. Produces the SAME result shape as the docx engine.
    ============================================================ */
 async function runPdfChecks(buf){
-  const pdf = await pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;
+  const pdf = await pdfjsLib.getDocument({data:new Uint8Array(buf.slice(0))}).promise;
   const out = [];
   const meta = await pdf.getMetadata().catch(()=>({info:{}}));
   const info = meta.info||{};
@@ -891,11 +989,72 @@ function runChecks(ctx){
     }
   })();
 
+  /* ===========================================================
+     SECTION 2b — Expanded WCAG 2.0 coverage
+     Auto where the file allows; Manual (tester judgment) otherwise.
+     =========================================================== */
+
+  // Q6 — Single H1 (auto)
+  (function(){
+    const h1 = headings.filter(h=>h.level===1).length;
+    if(h1<=1){
+      out.push(C('singleh1','Single top-level heading (H1)', h1===1?'pass':'warn','recommended',
+        h1===1?'Exactly one H1.':'No H1 found.',
+        'A document should have a single H1 as its main title; multiple H1s confuse screen-reader navigation.',
+        h1===0?'Apply Heading 1 to the document/module title.':'',
+        'WCAG 1.3.1 / 2.4.6',null,'auto'));
+    }else{
+      out.push(C('singleh1','Single top-level heading (H1)','warn','recommended',
+        `${h1} H1 headings found — there should normally be one.`,
+        'Multiple H1s usually mean section titles were styled as H1 instead of H2/H3.',
+        'Keep one H1 (the title); demote the rest to H2/H3 as appropriate.',
+        'WCAG 1.3.1 / 2.4.6',null,'auto'));
+    }
+  })();
+
+  // Manual WCAG checks (tester judgment — not detectable from the file)
+  const M=(id,title,summary,detail,fix,guide)=>out.push(C(id,title,'warn','recommended',summary,detail,fix,guide,null,'manual'));
+  M('contrast','Colour contrast (manual)',
+    'Verify text contrast ≥ 4.5:1 (3:1 for large text).',
+    'The tool can\'t reliably judge contrast from the file. Visually check body text, headings, captions and any coloured text against their background.',
+    'Use a contrast checker (e.g. TPGi Colour Contrast Analyser); darken text or lighten background until it passes 4.5:1.',
+    'WCAG 1.4.3 Contrast (Minimum)');
+  M('colour-alone','Information not by colour alone (manual)',
+    'Verify meaning is never conveyed by colour alone.',
+    'Check that anything indicated by colour (e.g. "items in red are required", coloured status, links distinguished only by colour) also has text, an icon, or underline.',
+    'Add a label, symbol, or underline so the information survives without colour.',
+    'WCAG 1.4.1 Use of Color');
+  M('images-of-text','Images of text (manual)',
+    'Verify text is real text, not pictures of text.',
+    'Screenshots or graphics containing essential text aren\'t readable by screen readers or scalable. Confirm essential text is live text (alt text alone is not sufficient for long text).',
+    'Replace images of text with real text where possible; otherwise provide a full transcript.',
+    'WCAG 1.4.5 Images of Text');
+  M('sensory','Sensory instructions (manual)',
+    'Verify instructions don\'t rely on shape, size or position alone.',
+    'Check for instructions like "click the round button" or "see the box on the right" — these fail for non-visual users.',
+    'Add a text label or heading reference (e.g. "select Submit") alongside any positional/shape cue.',
+    'WCAG 1.3.3 Sensory Characteristics');
+  M('alt-quality-manual','Alt text is accurate & meaningful (manual)',
+    `Verify the alt text on ${images.length} image(s) actually conveys the right information.`,
+    'The tool checks that alt text exists and is well-formed, but a human must confirm it accurately describes the image\'s purpose and isn\'t redundant with nearby text.',
+    'Read each alt text against its image and surrounding copy; follow the guidebook alt-text cheat sheet (pp.10–15).',
+    'WCAG 1.1.1 Non-text Content');
+  M('media','Audio/video alternatives (manual)',
+    'Verify any embedded media has captions and/or a transcript.',
+    'If the document embeds or links audio/video, it needs captions (video) and a transcript. This is the guidebook\'s standard for downloadable components.',
+    'Provide captions for video and a text transcript; link the OLC version per the guidebook caption convention.',
+    'WCAG 1.2.1 / 1.2.2 Time-based Media');
+  M('reading-order-manual','Reading order is logical (manual)',
+    'Verify content reads in a sensible order.',
+    'The tool confirms a heading/structure exists, but not that the order is correct. Read the document top-to-bottom as a screen reader would (including text boxes and floating images).',
+    'Reorder content in Word so the visual and logical order match; avoid floating objects that jump the reading order.',
+    'WCAG 1.3.2 Meaningful Sequence');
+
   return out;
 }
 
-function C(id,title,status,section,summary,detail,fix,guide,list){
-  return {id,title,status,section,summary,detail:detail||'',fix:fix||'',guide:guide||'',list:list||null};
+function C(id,title,status,section,summary,detail,fix,guide,list,mode){
+  return {id,title,status,section,summary,detail:detail||'',fix:fix||'',guide:guide||'',list:list||null,mode:mode||'auto'};
 }
 function escapeHtml(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
@@ -920,6 +1079,7 @@ function renderDashboard(){
   $('batchbar').innerHTML =
     `<span class="fn">${FILES.length} file${FILES.length>1?'s':''} checked</span>
      <span class="spacer"></span>
+     <button class="btn btn-ghost" onclick="showAltTable('guide')">🖼 Alt-text table</button>
      <button class="btn btn-yellow" onclick="window.print()">⬇ Download / Print</button>
      <button class="btn btn-ghost" onclick="location.reload()">Check other files</button>`;
 
@@ -1073,7 +1233,7 @@ function checkCard(r){
     <div class="check-top">
       <div class="check-icon">${icon}</div>
       <div class="check-body">
-        <p class="check-title">${r.title}</p>
+        <p class="check-title">${r.title}<span class="mode-badge ${r.mode==='manual'?'manual':'auto'}">${r.mode==='manual'?'Manual':'Auto'}</span></p>
         <p class="check-sub">${r.summary}</p>
       </div>
       ${hasDetail?'<div class="chev">▶</div>':''}
@@ -1085,6 +1245,360 @@ function checkCard(r){
       ${r.guide?`<div class="guide-ref">📘 ${r.guide}</div>`:''}
     </div>`:''}
   </div>`;
+}
+</script>
+
+<script>
+/* ============================================================
+   TEST PLANS TAB — multi-type (docx/pdf/pptx/xlsx)
+   Auto: run engines on the file.  Manual: guided checklist from
+   the accessibility-team test plans (window.TESTPLAN_CATALOG).
+   Separate <script> so any issue here can't break the Guidebook tab.
+   Reuses globals: el, C, checkCard, sectionBlock, escapeHtml,
+   runChecks, readDocx, runPdfChecks, scoreCard.
+   ============================================================ */
+(function(){
+  const dz=$('dropzone2'), fi=$('fileInput2');
+  if(!dz) return;
+  dz.addEventListener('click',()=>fi.click());
+  fi.addEventListener('change',e=>{ if(e.target.files.length) processTestFiles(e.target.files); });
+  ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag');}));
+  dz.addEventListener('drop',e=>{ if(e.dataTransfer.files.length) processTestFiles(e.dataTransfer.files); });
+})();
+
+const TYPE_TO_PLAN={docx:'Word',pdf:'PDF',pptx:'PPT',xlsx:'Excel'};
+const TYPE_LABEL={docx:'Word',pdf:'PDF',pptx:'PowerPoint',xlsx:'Excel'};
+let TFILES=[], TCUR=0;
+const txt=node=>el(node,'t').map(t=>t.textContent).join('');
+// Auto-result helper aligned to global C signature (id,title,status,section,summary,detail,fix,guide,list,mode)
+const CA=(id,t,s,sec,sum,det,fix,g)=>C(id,t,s,sec,sum,det,fix,g,null,'auto');
+
+function tShowError(m){ const b=$('errorBox2'); b.innerHTML='⚠ '+m; b.style.display='block'; }
+
+async function processTestFiles(fileList){
+  $('errorBox2').style.display='none';
+  const files=Array.from(fileList).filter(f=>/\.(docx|pdf|pptx|xlsx)$/i.test(f.name));
+  const skipped=Array.from(fileList).filter(f=>!/\.(docx|pdf|pptx|xlsx)$/i.test(f.name));
+  if(!files.length){ tShowError('Please choose .docx, .pdf, .pptx or .xlsx files.'); return; }
+  $('results2').style.display='none';
+  $('spinner2').classList.add('show');
+  TFILES=[];
+  for(let i=0;i<files.length;i++){
+    const file=files[i];
+    $('spinnerMsg2').textContent=`Analysing ${i+1} of ${files.length}: ${file.name}`;
+    const ext=(file.name.match(/\.(docx|pdf|pptx|xlsx)$/i)||[])[1].toLowerCase();
+    const rec={name:file.name,size:file.size,type:ext,auto:null,error:null,buf:null};
+    try{
+      const buf=await file.arrayBuffer();
+      rec.buf=buf;
+      if(ext==='docx'){ rec.auto=runChecks(await readDocx(await JSZip.loadAsync(buf))); }
+      else if(ext==='pdf'){ rec.auto=await runPdfChecks(buf); }
+      else if(ext==='pptx'){ rec.auto=await runPptxChecks(buf); }
+      else if(ext==='xlsx'){ rec.auto=await runXlsxChecks(buf); }
+    }catch(err){ console.error(err); rec.error=err.message||String(err); }
+    TFILES.push(rec);
+  }
+  $('spinner2').classList.remove('show');
+  if(skipped.length) tShowError(`Skipped ${skipped.length} unsupported file(s).`);
+  $('results2').style.display='block';
+  TCUR=0; renderTestChips(); openTestReport(0);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function tTally(auto){ const c={pass:0,warn:0,fail:0}; (auto||[]).forEach(r=>c[r.status]++); return c; }
+function renderTestChips(){
+  $('batchbar2').innerHTML=`<span class="fn">${TFILES.length} file${TFILES.length>1?'s':''}</span>
+    <span class="spacer"></span>
+    <button class="btn btn-ghost" onclick="showAltTable('test')">🖼 Alt-text table</button>
+    <button class="btn btn-yellow" onclick="window.print()">⬇ Download / Print</button>
+    <button class="btn btn-ghost" onclick="location.reload()">Check other files</button>`;
+  if(TFILES.length>1){
+    $('chips2').innerHTML=TFILES.map((f,i)=>{
+      let dot='err';
+      if(!f.error){ const c=tTally(f.auto); dot=c.fail?'fail':(c.warn?'warn':'pass'); }
+      return `<button class="fchip ${i===TCUR?'on':''}" data-i="${i}" onclick="openTestReport(${i})"><span class="dot ${dot}"></span>${f.type.toUpperCase()} · ${escapeHtml(f.name)}</button>`;
+    }).join('');
+  }else $('chips2').innerHTML='';
+}
+
+function openTestReport(i){
+  TCUR=i;
+  document.querySelectorAll('#chips2 .fchip').forEach(c=>c.classList.toggle('on',+c.dataset.i===i));
+  const rec=TFILES[i];
+  const plan=TYPE_TO_PLAN[rec.type];
+  const cat=(window.TESTPLAN_CATALOG&&window.TESTPLAN_CATALOG[plan])||[];
+  const manual=cat.filter(x=>x.mode==='manual');
+  const autoCases=cat.filter(x=>x.mode==='auto');
+
+  if(rec.error){
+    $('detail2').innerHTML=`<div class="verdict no"><span class="big">⚠</span><div>Couldn't read <b>${escapeHtml(rec.name)}</b> (${escapeHtml(rec.error)}).</div></div>`;
+    return;
+  }
+  const c=tTally(rec.auto);
+  const catNote = cat.length
+    ? `<div class="step-intro">Showing the <b>${TYPE_LABEL[rec.type]}</b> test plan: <b>${autoCases.length}</b> case(s) are auto-checkable (reflected in Automated checks below) and <b>${manual.length}</b> require manual testing (listed as a checklist with the exact procedure).</div>`
+    : `<div class="step-intro">Automated checks for this <b>${TYPE_LABEL[rec.type]}</b> file are below. (Test-plan catalog not loaded, so the manual checklist is unavailable — keep <code>Accessibility-PreCheck-testplans.js</code> in the same folder as this page.)</div>`;
+
+  const auto=rec.auto||[];
+  const reqFail=auto.filter(r=>r.section==='required'&&r.status==='fail').length;
+  const banner=`<div class="verdict ${reqFail?'no':'ok'}"><span class="big">${reqFail?'⛔':'✅'}</span><div><b>${escapeHtml(rec.name)}</b> <span class="ftype ${rec.type}">${rec.type.toUpperCase()}</span> — ${reqFail?(`<b>${reqFail} required issue(s)</b> found by automated checks.`):'no required issues from automated checks.'} See the manual checklist below for tester steps.</div></div>`;
+  const req=auto.filter(r=>r.section==='required'), rec2=auto.filter(r=>r.section==='recommended');
+  let html=banner+catNote+
+    `<div class="scorecard">
+       ${scoreCard('total',auto.length,'Auto checks')}
+       ${scoreCard('pass',c.pass,'Passed')}
+       ${scoreCard('warn',c.warn,'Review')}
+       ${scoreCard('fail',c.fail,'Failed')}
+     </div>`;
+  html+=sectionBlock('Automated checks — required','badge-req','Issues the tool detected directly from the file.',req);
+  if(rec2.length) html+=sectionBlock('Automated checks — recommended','badge-rec','Best-practice items detected from the file.',rec2);
+  if(manual.length){
+    html+=`<div class="section-head" style="margin-top:30px"><span class="badge badge-rec" style="background:#F3EAFB;color:#6b2fae">Manual</span><h2>Manual checks from the ${TYPE_LABEL[rec.type]} test plan</h2></div>
+      <div class="desc" style="margin:-8px 0 12px;color:var(--ink-3);font-size:12.5px">These require a tester (screen reader / visual judgment). Each shows its WCAG reference and the exact procedure from the plan.</div>`;
+    html+=manual.map(manualCard).join('');
+  }
+  $('detail2').innerHTML=html;
+  // bind expanders
+  $('detail2').querySelectorAll('.check-top').forEach(t=>t.addEventListener('click',()=>t.closest('.check').classList.toggle('open')));
+  $('detail2').querySelectorAll('.check.fail').forEach(c=>c.classList.add('open'));
+  $('detail2').querySelectorAll('.mcard-top').forEach(t=>t.addEventListener('click',()=>t.closest('.mcard').classList.toggle('open')));
+}
+
+function manualCard(m){
+  const wcag=m.wcag?`<span class="wcag-tag">${escapeHtml(m.wcag)}</span>`:'';
+  return `<div class="mcard">
+    <div class="mcard-top">
+      <div class="mcard-ic">⌖</div>
+      <div class="mcard-body">
+        <p class="mcard-title">${escapeHtml(m.name)}<span class="mode-badge manual">Manual</span></p>
+        <p class="mcard-meta">${wcag}${m.kind?escapeHtml(m.kind)+' · ':''}${escapeHtml(m.tool||'')}</p>
+      </div>
+      <div class="chev">▶</div>
+    </div>
+    <div class="mcard-detail">
+      ${m.summary?`<div class="lbl">What to check</div><div>${escapeHtml(m.summary)}</div>`:''}
+      ${m.proc?`<div class="lbl">Procedure</div><div class="proc">${escapeHtml(m.proc)}</div>`:''}
+      ${m.exp?`<div class="lbl">Expected result</div><div>${escapeHtml(m.exp)}</div>`:''}
+    </div>
+  </div>`;
+}
+
+/* ---- PPTX engine ---- */
+async function runPptxChecks(buf){
+  const zip=await JSZip.loadAsync(buf); const P=new DOMParser(); const out=[];
+  const slidePaths=Object.keys(zip.files).filter(n=>/^ppt\/slides\/slide\d+\.xml$/.test(n)).sort();
+  const coreF=zip.file('docProps/core.xml'); const core=coreF?P.parseFromString(await coreF.async('string'),'application/xml'):null;
+  let slidesNoTitle=0,picMissingAlt=0,picTotal=0,tableMerges=0,tableNoHeader=0,tableTotal=0,emptySlides=0;
+  for(const sp of slidePaths){
+    const doc=P.parseFromString(await zip.file(sp).async('string'),'application/xml');
+    let titleText='',hasTitle=false;
+    el(doc,'sp').forEach(s=>{ const ph=el(s,'ph')[0]; if(ph&&/^(title|ctrTitle)$/i.test(ph.getAttribute('type')||'')){hasTitle=true;titleText+=txt(s);} });
+    if(!hasTitle||!titleText.trim()) slidesNoTitle++;
+    el(doc,'pic').forEach(pic=>{ picTotal++; const c=el(pic,'cNvPr')[0]; const a=c?(c.getAttribute('descr')||c.getAttribute('title')||'').trim():''; if(!a)picMissingAlt++; });
+    el(doc,'tbl').forEach(tb=>{ tableTotal++; const tp=el(tb,'tblPr')[0]; if(!(tp&&tp.getAttribute('firstRow')==='1'))tableNoHeader++; tableMerges+=el(tb,'tc').filter(tc=>(+tc.getAttribute('gridSpan')>1)||(+tc.getAttribute('rowSpan')>1)).length; });
+    if(!txt(doc).trim()&&el(doc,'pic').length===0&&el(doc,'tbl').length===0) emptySlides++;
+  }
+  const n=slidePaths.length;
+  let dt=''; if(core){const t=core.getElementsByTagName('dc:title')[0]; if(t)dt=(t.textContent||'').trim();}
+  out.push(CA('ppt-title','Presentation title',dt?'pass':'warn','required',dt?`Title set: "${dt}".`:'No presentation title in file properties.','A document title is stored in the file properties.',dt?'':'File → Info → Title.','WCAG 2.4.2'));
+  out.push(CA('ppt-slidetitle','Slide titles',slidesNoTitle===0?'pass':'fail','required',slidesNoTitle===0?`All ${n} slide(s) have a title.`:`${slidesNoTitle} of ${n} slide(s) have no title.`,'Every slide needs a unique, meaningful title in the Title placeholder for screen-reader navigation.',slidesNoTitle?'Use a layout with a Title placeholder, or the Outline view, to title each slide.':'','WCAG 2.4.2 / 1.3.1'));
+  out.push(CA('ppt-alt','Image alt text',picTotal===0?'pass':(picMissingAlt===0?'pass':'fail'),'required',picTotal===0?'No images found.':(picMissingAlt===0?`All ${picTotal} image(s) have alt text.`:`${picMissingAlt} of ${picTotal} image(s) missing alt text.`),'Images need alt text or to be marked decorative.',picMissingAlt?'Right-click image → View Alt Text.':'','WCAG 1.1.1'));
+  if(tableTotal>0) out.push(CA('ppt-table','Table headers & merges',(tableNoHeader===0&&tableMerges===0)?'pass':'warn','required',`${tableTotal} table(s): ${tableNoHeader} without a header row, ${tableMerges} merged cell(s).`,'Tables should have a header row and avoid merged cells.',(tableNoHeader||tableMerges)?'Enable Header Row (Table Design) and split merged cells.':'','WCAG 1.3.1'));
+  out.push(CA('ppt-blank','Blank slides',emptySlides===0?'pass':'warn','recommended',emptySlides===0?'No empty slides.':`${emptySlides} empty slide(s).`,'Empty slides are confusing empty stops for screen-reader users.',emptySlides?'Remove empty slides.':'','WCAG 1.3.1'));
+  return out;
+}
+
+/* ---- XLSX engine ---- */
+async function runXlsxChecks(buf){
+  const zip=await JSZip.loadAsync(buf); const P=new DOMParser(); const out=[];
+  const rd=async p=>{const f=zip.file(p);return f?P.parseFromString(await f.async('string'),'application/xml'):null;};
+  const core=await rd('docProps/core.xml'); const wb=await rd('xl/workbook.xml');
+  const sheets=wb?el(wb,'sheet').map(s=>s.getAttribute('name')||''):[];
+  const defaultNames=sheets.filter(nm=>/^Sheet\d+$/i.test(nm)).length;
+  const tablePaths=Object.keys(zip.files).filter(n=>/^xl\/tables\/table\d+\.xml$/.test(n));
+  let tablesNoHeader=0;
+  for(const tp of tablePaths){ const t=await rd(tp); const tb=el(t,'table')[0]; if(tb&&tb.getAttribute('headerRowCount')==='0')tablesNoHeader++; }
+  let merges=0;
+  for(const sp of Object.keys(zip.files).filter(n=>/^xl\/worksheets\/sheet\d+\.xml$/.test(n))){ const s=await rd(sp); merges+=el(s,'mergeCell').length; }
+  let picTotal=0,picMissingAlt=0;
+  for(const dp of Object.keys(zip.files).filter(n=>/^xl\/drawings\/drawing\d+\.xml$/.test(n))){ const d=await rd(dp); el(d,'cNvPr').forEach(c=>{picTotal++; const a=(c.getAttribute('descr')||c.getAttribute('title')||'').trim(); if(!a)picMissingAlt++;}); }
+  let dt=''; if(core){const t=core.getElementsByTagName('dc:title')[0]; if(t)dt=(t.textContent||'').trim();}
+  out.push(CA('xls-title','Workbook title',dt?'pass':'warn','required',dt?`Title set: "${dt}".`:'No workbook title in file properties.','A document title is stored in the file properties.',dt?'':'File → Info → Title.','WCAG 2.4.2'));
+  out.push(CA('xls-sheetnames','Meaningful sheet names',defaultNames===0?'pass':'warn','recommended',defaultNames===0?`All ${sheets.length} sheet(s) have custom names.`:`${defaultNames} sheet(s) still use default names (Sheet1, …).`,'Default sheet names give screen-reader users no context.',defaultNames?'Rename sheets to describe their content.':'','WCAG 2.4.2'));
+  if(tablePaths.length>0) out.push(CA('xls-tablehdr','Table header rows',tablesNoHeader===0?'pass':'fail','required',tablesNoHeader===0?`All ${tablePaths.length} defined table(s) have a header row.`:`${tablesNoHeader} of ${tablePaths.length} table(s) have no header row.`,'Defined tables should keep a header row so screen readers announce column headers.',tablesNoHeader?'Select range → Insert → Table, keep "My table has headers".':'','WCAG 1.3.1'));
+  else out.push(CA('xls-tablehdr','Defined tables','warn','recommended','No defined tables found.','Data as plain cells is not announced as a table. Convert data ranges to a Table so structure is conveyed.','Select the data range → Insert → Table.','WCAG 1.3.1'));
+  out.push(CA('xls-merge','Merged cells',merges===0?'pass':'warn','required',merges===0?'No merged cells.':`${merges} merged cell range(s) found.`,'Merged cells disrupt screen-reader navigation and table semantics.',merges?'Unmerge cells; use "Center Across Selection" for visual centering.':'','WCAG 1.3.1'));
+  if(picTotal>0) out.push(CA('xls-alt','Image alt text',picMissingAlt===0?'pass':'fail','required',picMissingAlt===0?`All ${picTotal} image(s) have alt text.`:`${picMissingAlt} of ${picTotal} image(s) missing alt text.`,'Images need alt text or to be marked decorative.',picMissingAlt?'Right-click image → View Alt Text.':'','WCAG 1.1.1'));
+  return out;
+}
+
+/* ============================================================
+   ALT-TEXT REVIEW TABLE — lists every image with a thumbnail
+   (docx/pptx/xlsx) and its current alt text, for human review.
+   ============================================================ */
+function closeAltTable(){ $('altOverlay').hidden=true; }
+function mimeFor(path){
+  const e=(path.split('.').pop()||'').toLowerCase();
+  if(e==='png')return 'image/png'; if(e==='jpg'||e==='jpeg')return 'image/jpeg';
+  if(e==='gif')return 'image/gif'; if(e==='bmp')return 'image/bmp';
+  if(e==='svg')return 'image/svg+xml'; if(e==='webp')return 'image/webp';
+  return null; // emf/wmf/tiff etc → not browser-renderable
+}
+function resolveRel(base, target){ // base dir e.g. 'word' or 'ppt/slides'; target like '../media/image1.png', 'media/image1.png', or '/xl/media/image1.png'
+  if(/^\//.test(target)) return target.replace(/^\/+/,''); // absolute (relative to package root)
+  const parts=(base+'/'+target).split('/'); const stack=[];
+  for(const p of parts){ if(p==='..')stack.pop(); else if(p==='.'||p==='')continue; else stack.push(p); }
+  return stack.join('/');
+}
+async function readRels(zip,P,relsPath){
+  const f=zip.file(relsPath); const map={};
+  if(f){ const d=P.parseFromString(await f.async('string'),'application/xml');
+    Array.from(d.getElementsByTagName('Relationship')).forEach(r=>map[r.getAttribute('Id')]=r.getAttribute('Target')); }
+  return map;
+}
+async function mediaDataUri(zip, path){
+  const mime=mimeFor(path); if(!mime) return '';
+  const f=zip.file(path); if(!f) return '';
+  const b64=await f.async('base64'); return `data:${mime};base64,${b64}`;
+}
+const REMBED='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+function blipEmbed(dr){ const b=el(dr,'blip')[0]; if(!b)return null; return b.getAttributeNS(REMBED,'embed')||b.getAttribute('r:embed'); }
+
+async function extractAltRows(rec){
+  const P=new DOMParser(); const buf=rec.buf;
+  if(!buf) return [];
+  if(rec.type==='docx'){
+    const zip=await JSZip.loadAsync(buf);
+    const rels=await readRels(zip,P,'word/_rels/document.xml.rels');
+    const doc=P.parseFromString(await zip.file('word/document.xml').async('string'),'application/xml');
+    const rows=[];
+    // Word doesn't store page numbers in the file, so we track the nearest preceding heading as the location.
+    let lastHeading='';
+    for(const p of el(doc,'p')){
+      const ps=el(p,'pStyle')[0]; const st=ps?ps.getAttributeNS(W,'val'):'';
+      if(st&&/^Heading[1-6]$/i.test(st)){ const t=el(p,'t').map(x=>x.textContent).join('').trim(); if(t) lastHeading=t; }
+      for(const dr of el(p,'drawing')){
+        const dp=el(dr,'docPr')[0]; if(!dp) continue;
+        const alt=(dp.getAttribute('descr')||dp.getAttribute('title')||'').trim();
+        const rid=blipEmbed(dr); let src='';
+        if(rid&&rels[rid]) src=await mediaDataUri(zip, resolveRel('word', rels[rid]));
+        rows.push({name:dp.getAttribute('name')||'',alt,src,loc:lastHeading?('Under: '+lastHeading):'(before first heading)'});
+      }
+    }
+    return rows;
+  }
+  if(rec.type==='pptx'){
+    const zip=await JSZip.loadAsync(buf);
+    const slides=Object.keys(zip.files).filter(n=>/^ppt\/slides\/slide\d+\.xml$/.test(n)).sort((a,b)=>(+a.match(/\d+/))-(+b.match(/\d+/)));
+    const rows=[];
+    for(let si=0;si<slides.length;si++){
+      const sp=slides[si];
+      const rels=await readRels(zip,P,sp.replace('slides/','slides/_rels/')+'.rels');
+      const doc=P.parseFromString(await zip.file(sp).async('string'),'application/xml');
+      for(const pic of el(doc,'pic')){
+        const c=el(pic,'cNvPr')[0];
+        const alt=c?(c.getAttribute('descr')||c.getAttribute('title')||'').trim():'';
+        const rid=blipEmbed(pic); let src='';
+        if(rid&&rels[rid]) src=await mediaDataUri(zip, resolveRel('ppt/slides', rels[rid]));
+        rows.push({name:c?(c.getAttribute('name')||''):'',alt,src,loc:'Slide '+(si+1)});
+      }
+    }
+    return rows;
+  }
+  if(rec.type==='xlsx'){
+    const zip=await JSZip.loadAsync(buf);
+    const draws=Object.keys(zip.files).filter(n=>/^xl\/drawings\/drawing\d+\.xml$/.test(n));
+    const rows=[];
+    for(const dp of draws){
+      const rels=await readRels(zip,P,dp.replace('drawings/','drawings/_rels/')+'.rels');
+      const doc=P.parseFromString(await zip.file(dp).async('string'),'application/xml');
+      for(const pic of el(doc,'pic')){
+        const c=el(pic,'cNvPr')[0];
+        const alt=c?(c.getAttribute('descr')||c.getAttribute('title')||'').trim():'';
+        const rid=blipEmbed(pic); let src='';
+        if(rid&&rels[rid]) src=await mediaDataUri(zip, resolveRel('xl/drawings', rels[rid]));
+        rows.push({name:c?(c.getAttribute('name')||''):'',alt,src,loc:''});
+      }
+    }
+    return rows;
+  }
+  if(rec.type==='pdf'){
+    const pdf=await pdfjsLib.getDocument({data:new Uint8Array(buf.slice(0))}).promise;
+    const rows=[];
+    const maxP=Math.min(pdf.numPages,60);
+    for(let i=1;i<=maxP;i++){
+      let st=null, page=null;
+      try{ page=await pdf.getPage(i); st=await page.getStructTree(); }catch(e){ st=null; }
+      const alts=[];
+      (function walk(n){ if(!n||typeof n!=='object')return;
+        if(n.role&&/^Figure$/i.test(n.role)) alts.push((n.alt||'').trim());
+        (n.children||[]).forEach(walk);
+      })(st);
+      if(alts.length && page){
+        // render the page once to a thumbnail (PDF figures aren't individually croppable, so we preview the whole page)
+        let thumb='';
+        try{
+          const base=page.getViewport({scale:1});
+          const scale=Math.min(190/base.width, 1.2);
+          const vp=page.getViewport({scale});
+          const cv=document.createElement('canvas'); cv.width=Math.ceil(vp.width); cv.height=Math.ceil(vp.height);
+          await page.render({canvasContext:cv.getContext('2d'), viewport:vp}).promise;
+          thumb=cv.toDataURL('image/jpeg',0.7);
+        }catch(e){ thumb=''; }
+        alts.forEach(a=>rows.push({name:'Figure',alt:a,src:thumb,loc:'Page '+i,pageThumb:true}));
+      }
+    }
+    return rows;
+  }
+  return [];
+}
+
+async function showAltTable(which){
+  const rec = which==='guide'? FILES[CURRENT] : TFILES[TCUR];
+  if(!rec){ return; }
+  const ov=$('altOverlay'); ov.hidden=false;
+  $('altTitle').textContent='Alt-text review — '+rec.name;
+  $('altBody').innerHTML='<div style="padding:30px;text-align:center;color:var(--ink-3)">Extracting images…</div>';
+  try{
+    const rows=await extractAltRows(rec);
+    if(!rows.length){ $('altBody').innerHTML='<div style="padding:20px;color:var(--ink-3)">No images found in this file.</div>'; return; }
+    // "weak" = alt exists but is only dashes/punctuation/whitespace, or very short -> likely a placeholder, not real alt text
+    const isWeak=a=>!!a && (a.replace(/[\s\-–—_.•·:;|]/g,'').length===0 || a.trim().length<5);
+    const missing=rows.filter(r=>!r.alt).length;
+    const weak=rows.filter(r=>r.alt&&isWeak(r.alt)).length;
+    const pdf=rec.type==='pdf';
+    const noteParts=[];
+    if(missing) noteParts.push(`<b style="color:var(--fail)">${missing} missing</b>`);
+    if(weak) noteParts.push(`<b style="color:var(--warn)">${weak} placeholder/too short</b>`);
+    if(!missing&&!weak) noteParts.push(`<b style="color:var(--pass)">all have alt text</b>`);
+    $('altBody').innerHTML=
+      `<div style="margin-bottom:12px;font-size:13px;color:var(--ink-2)">${rows.length} image(s) &mdash; ${noteParts.join(', ')}. Hover any image to zoom. Read each image against its alt text to confirm it is accurate and meaningful.${pdf?' <span class="len">(For PDF, the preview shows the page containing the figure.)</span>':''}</div>
+      <table class="alt-tbl"><thead><tr><th style="width:150px">Image</th><th style="width:120px">Location</th><th>Current alt text</th></tr></thead><tbody>
+      ${rows.map((r,i)=>{
+        let altCell;
+        if(!r.alt) altCell='<span class="noalt">— no alt text —</span>';
+        else if(isWeak(r.alt)) altCell=`${escapeHtml(r.alt)}<div class="len" style="color:var(--warn);font-weight:700">⚠ looks like a placeholder (${r.alt.length} chars) — add real alt text</div>`;
+        else altCell=`${escapeHtml(r.alt)}<div class="len">${r.alt.length} characters</div>`;
+        return `<tr>
+        <td>${r.src?`<img src="${r.src}" alt="">`:'<span class="len">(no preview)</span>'}<div class="len">${escapeHtml(r.name||('#'+(i+1)))}</div></td>
+        <td class="len">${escapeHtml(r.loc||'')}</td>
+        <td>${altCell}</td></tr>`;
+      }).join('')}
+      </tbody></table>`;
+    // hover-to-zoom
+    const zoom=$('altZoom');
+    $('altBody').querySelectorAll('img').forEach(im=>{
+      im.addEventListener('mouseenter',()=>{ if(im.src){ zoom.src=im.src; zoom.style.display='block'; } });
+      im.addEventListener('mousemove',e=>{
+        const pad=18; let x=e.clientX+pad, y=e.clientY+pad;
+        x=Math.min(x, window.innerWidth - zoom.offsetWidth - 12);
+        y=Math.min(y, window.innerHeight - zoom.offsetHeight - 12);
+        zoom.style.left=Math.max(8,x)+'px'; zoom.style.top=Math.max(8,y)+'px';
+      });
+      im.addEventListener('mouseleave',()=>{ zoom.style.display='none'; });
+    });
+  }catch(e){ console.error(e); $('altBody').innerHTML='<div style="padding:20px;color:var(--fail)">Couldn\'t extract images: '+escapeHtml(e.message||String(e))+'</div>'; }
 }
 </script>
 </body>
