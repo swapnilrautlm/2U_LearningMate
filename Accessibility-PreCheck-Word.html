@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 :root{
   --brand-yellow:#FECF48; --brand-blue:#1376D4; --brand-blue-700:#0F5FAB;
@@ -152,6 +153,30 @@ a:hover{text-decoration:underline}
 .mini-s{color:var(--ink-3);flex:1}
 .manual-note{border-top:1px solid var(--line);padding:11px 16px;font-size:13px;color:var(--ink-2);background:var(--bg-alt)}
 .manual-note b{color:var(--ink)}
+/* flatten check cards when nested inside a step card */
+.stepcard .check{border:0;border-left:0;border-radius:0;margin:0;border-top:1px solid var(--line)}
+.stepcard .check-detail{padding-left:52px}
+
+/* Summary dashboard table */
+.summary-tbl{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-bottom:20px;font-size:13.5px}
+.summary-tbl th{text-align:left;background:var(--bg-alt);color:var(--ink-3);font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;padding:11px 14px;border-bottom:1px solid var(--line)}
+.summary-tbl td{padding:12px 14px;border-bottom:1px solid var(--line)}
+.summary-tbl tr:last-child td{border-bottom:0}
+.srow{cursor:pointer;transition:.12s}
+.srow:hover{background:var(--brand-blue-50)}
+.srow.sel{background:var(--brand-blue-50);box-shadow:inset 4px 0 0 var(--brand-blue)}
+.s-file{font-weight:700;color:var(--ink)}
+.s-num{text-align:center;font-weight:800;width:42px}
+.s-num.pass{color:var(--pass)} .s-num.warn{color:var(--warn)} .s-num.fail{color:var(--fail)}
+.ftype{font-size:11px;font-weight:800;padding:3px 8px;border-radius:5px}
+.ftype.docx{background:var(--brand-blue-50);color:var(--brand-blue-700)}
+.ftype.pdf{background:#FCEBE6;color:#a8341a}
+.pill-v{font-size:11.5px;font-weight:800;padding:4px 10px;border-radius:20px;white-space:nowrap}
+.pill-v.pass{background:var(--pass-bg);color:#1d6b42}
+.pill-v.warn{background:var(--warn-bg);color:#8a6500}
+.pill-v.fail{background:var(--fail-bg);color:#a8341a}
+.pill-v.err{background:#eef0f2;color:var(--ink-3)}
+.section-head .desc{margin-left:4px}
 
 @media print{
   .topbar,.dropzone,.priv,.filebar,.hero p,.no-print{display:none!important}
@@ -199,25 +224,28 @@ a:hover{text-decoration:underline}
 
   <div class="dropzone" id="dropzone">
     <div class="dz-icon">📄</div>
-    <h2>Drop your .docx here</h2>
-    <p>or <span class="browse">browse to choose a file</span> &nbsp;·&nbsp; Word documents only (.docx)</p>
-    <input type="file" id="fileInput" accept=".docx" style="display:none">
+    <h2>Drop your files here</h2>
+    <p>or <span class="browse">browse to choose files</span> &nbsp;·&nbsp; Word (.docx) or PDF (.pdf) &nbsp;·&nbsp; select several to check them together</p>
+    <input type="file" id="fileInput" accept=".docx,.pdf" multiple style="display:none">
   </div>
   <div class="priv">🔒 Processed entirely in your browser — nothing is uploaded.</div>
 
-  <div class="spinner" id="spinner"><div class="lds"></div>Analysing document…</div>
+  <div class="spinner" id="spinner"><div class="lds"></div><span id="spinnerMsg">Analysing…</span></div>
 
   <div id="results">
-    <div class="filebar no-print" id="filebar"></div>
-    <div id="verdict"></div>
-    <div class="scorecard" id="scorecard"></div>
-    <div id="viewToggle" class="no-print"></div>
-    <div id="report"></div>
+    <div class="filebar no-print" id="batchbar"></div>
+    <div id="summary"></div>
+    <div id="detail">
+      <div id="verdict"></div>
+      <div class="scorecard" id="scorecard"></div>
+      <div id="viewToggle" class="no-print"></div>
+      <div id="report"></div>
+    </div>
   </div>
 </div>
 
 <div class="foot">
-  Checks are based on the <b>Learning Accessibility Guidebook</b> ("Preparing a Word document", p.16) and WCAG 2.0 best practice. This tool flags likely issues for human review; it does not replace Acrobat's final accessibility check after PDF export.
+  Checks are based on the <b>Learning Accessibility Guidebook</b> and WCAG 2.0 / PDF-UA best practice. Word files are checked against "Preparing a Word document" (p.16); PDFs are checked for structural accessibility essentials. This tool flags likely issues for human review; it does not replace Acrobat's full accessibility check (e.g. colour contrast, reading-order correctness).
 </div>
 
 <script>
@@ -228,36 +256,171 @@ a:hover{text-decoration:underline}
 const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const $ = id => document.getElementById(id);
 
+// pdf.js worker
+if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
 const dropzone = $('dropzone'), fileInput = $('fileInput');
 dropzone.addEventListener('click', ()=>fileInput.click());
-fileInput.addEventListener('change', e=>{ if(e.target.files[0]) handleFile(e.target.files[0]); });
+fileInput.addEventListener('change', e=>{ if(e.target.files.length) processFiles(e.target.files); });
 ['dragenter','dragover'].forEach(ev=>dropzone.addEventListener(ev,e=>{e.preventDefault();dropzone.classList.add('drag');}));
 ['dragleave','drop'].forEach(ev=>dropzone.addEventListener(ev,e=>{e.preventDefault();dropzone.classList.remove('drag');}));
-dropzone.addEventListener('drop',e=>{ const f=e.dataTransfer.files[0]; if(f) handleFile(f); });
+dropzone.addEventListener('drop',e=>{ if(e.dataTransfer.files.length) processFiles(e.dataTransfer.files); });
 
-function showError(msg){ const b=$('errorBox'); b.textContent='⚠ '+msg; b.style.display='block'; }
+function showError(msg){ const b=$('errorBox'); b.innerHTML='⚠ '+msg; b.style.display='block'; }
 function clearError(){ $('errorBox').style.display='none'; }
 
-async function handleFile(file){
+// ---- state ----
+let FILES = [];      // [{name,size,type,results,error}]
+let CURRENT = 0;     // index of file shown in detail
+let CURRENT_VIEW = 'standard';
+
+async function processFiles(fileList){
   clearError();
-  if(!file.name.toLowerCase().endsWith('.docx')){
-    showError('Please choose a .docx file. The older .doc format isn\'t supported — open it in Word and Save As .docx.');
+  const files = Array.from(fileList);
+  const valid = files.filter(f=>/\.(docx|pdf)$/i.test(f.name));
+  const skipped = files.filter(f=>!/\.(docx|pdf)$/i.test(f.name));
+  if(valid.length===0){
+    showError('Please choose .docx or .pdf files. The older .doc format isn\'t supported — open it in Word and Save As .docx.');
     return;
   }
   $('results').style.display='none';
   $('spinner').classList.add('show');
-  try{
-    const buf = await file.arrayBuffer();
-    const zip = await JSZip.loadAsync(buf);
-    const ctx = await readDocx(zip);
-    const results = runChecks(ctx);
-    render(file, ctx, results);
-  }catch(err){
-    console.error(err);
-    showError('Could not read this file. It may be corrupted or not a valid Word document. ('+err.message+')');
-  }finally{
-    $('spinner').classList.remove('show');
+  FILES = [];
+  for(let i=0;i<valid.length;i++){
+    const file = valid[i];
+    $('spinnerMsg').textContent = `Analysing ${i+1} of ${valid.length}: ${file.name}`;
+    const rec = { name:file.name, size:file.size, type: /\.pdf$/i.test(file.name)?'pdf':'docx', results:null, error:null };
+    try{
+      const buf = await file.arrayBuffer();
+      if(rec.type==='docx'){
+        const zip = await JSZip.loadAsync(buf);
+        rec.results = runChecks(await readDocx(zip));
+      }else{
+        rec.results = await runPdfChecks(buf);
+      }
+    }catch(err){
+      console.error(err);
+      rec.error = err.message||String(err);
+    }
+    FILES.push(rec);
   }
+  $('spinner').classList.remove('show');
+  if(skipped.length) showError(`Skipped ${skipped.length} unsupported file(s): ${skipped.map(f=>escapeHtml(f.name)).join(', ')}`);
+  $('results').style.display='block';
+  CURRENT = 0;
+  renderDashboard();
+  openReport(0);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ============================================================
+   PDF ACCESSIBILITY ENGINE (structural WCAG / PDF-UA essentials)
+   Uses pdf.js. Produces the SAME result shape as the docx engine.
+   ============================================================ */
+async function runPdfChecks(buf){
+  const pdf = await pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;
+  const out = [];
+  const meta = await pdf.getMetadata().catch(()=>({info:{}}));
+  const info = meta.info||{};
+  const mark = await pdf.getMarkInfo().catch(()=>null);
+  const tagged = !!(mark && mark.Marked);
+  const outline = await pdf.getOutline().catch(()=>null);
+
+  // walk struct trees across pages, collecting roles + figures
+  const roles = {}; const figures = [];
+  if(tagged){
+    const maxP = Math.min(pdf.numPages, 60);
+    for(let i=1;i<=maxP;i++){
+      let st=null;
+      try{ const page=await pdf.getPage(i); st=await page.getStructTree(); }catch(e){ st=null; }
+      (function walk(n){
+        if(!n||typeof n!=='object') return;
+        if(n.role){
+          roles[n.role]=(roles[n.role]||0)+1;
+          if(/^Figure$/i.test(n.role)) figures.push({alt:(n.alt||'').trim()});
+        }
+        (n.children||[]).forEach(walk);
+      })(st);
+    }
+  }
+  const headingCount = ['H1','H2','H3','H4','H5','H6','H'].reduce((s,k)=>s+(roles[k]||0),0);
+  const structNodes = Object.values(roles).reduce((a,b)=>a+b,0);
+
+  // P1 — Tagged PDF
+  out.push(C('pdf-tagged','Tagged PDF', tagged?'pass':'fail','required',
+    tagged? 'The PDF is tagged.' : 'The PDF is NOT tagged.',
+    tagged? 'A structure (tag) tree is present, which screen readers rely on for reading order and semantics.'
+          : 'Without tags, screen readers cannot determine reading order or structure. Acrobat\'s checker fails immediately and almost every other check is moot.',
+    tagged? '' : 'Re-export from Word with "Document structure tags for accessibility" enabled, or run Acrobat → Prepare for Accessibility → Autotag, then fix the tags.',
+    'WCAG 1.3.1 / PDF-UA · Guidebook Step 6'));
+
+  // P2 — Document title (and shown in title bar)
+  const title = (info.Title||'').trim();
+  out.push(C('pdf-title','Document title', title?'pass':'fail','required',
+    title? `Title set: "${title}".` : 'No document title set.',
+    title? 'A title is stored in the PDF properties (used in the window title bar for screen-reader users).'
+         : 'Screen readers announce the filename instead of a meaningful title. Acrobat flags "Title".',
+    title? '' : 'Set it in Word (File → Info → Title) before export, or in Acrobat → File → Properties → Description → Title, and set "Show: Document Title" under Initial View.',
+    'WCAG 2.4.2 · Guidebook Step 2'));
+
+  // P3 — Language
+  const lang = (info.Language||'').trim();
+  out.push(C('pdf-lang','Document language', lang?'pass':'fail','required',
+    lang? `Language set to "${lang}".` : 'No document language set.',
+    lang? 'A primary language is defined, so screen readers use correct pronunciation.'
+        : 'Without a language, screen readers may mispronounce text. Acrobat flags "Primary language".',
+    lang? '' : 'Set the language in Word before export, or in Acrobat → File → Properties → Advanced → Reading Options → Language.',
+    'WCAG 3.1.1 · Guidebook Step 6'));
+
+  // P4 — Figure alt text (only meaningful if tagged)
+  if(tagged){
+    const missing = figures.filter(f=>!f.alt).length;
+    if(figures.length===0){
+      out.push(C('pdf-figalt','Figure alt text','warn','required',
+        'No tagged figures found.',
+        'No <Figure> tags were detected. If the PDF contains images, they may be untagged (treated as artifacts) — verify that meaningful images are tagged as figures with alt text, and decorative ones are marked as artifacts.',
+        'In Acrobat → Reading Order / Tags, tag meaningful images as Figures and add alt text; mark decorative images as Background/Artifact.',
+        'WCAG 1.1.1 · Guidebook Steps 3.2 & 4.3'));
+    }else if(missing>0){
+      out.push(C('pdf-figalt','Figure alt text','fail','required',
+        `${missing} of ${figures.length} figure(s) have no alt text.`,
+        'These figures are tagged but carry no alternate text, so screen-reader users get nothing for them.',
+        'In Acrobat → Tags, right-click each Figure → Properties → add Alternate Text (or set in the Reading Order tool).',
+        'WCAG 1.1.1 · Guidebook Steps 3.2 & 4.3'));
+    }else{
+      out.push(C('pdf-figalt','Figure alt text','pass','required',
+        `All ${figures.length} tagged figure(s) have alt text.`,
+        'Every <Figure> tag carries alternate text.',
+        '','WCAG 1.1.1'));
+    }
+  }
+
+  // P5 — Heading tags
+  out.push(C('pdf-headings','Heading tags', tagged?(headingCount>0?'pass':'warn'):'warn','recommended',
+    !tagged? 'Cannot assess — PDF is not tagged.' : (headingCount>0? `${headingCount} heading tag(s) found.` : 'No heading tags found.'),
+    headingCount>0? 'The document has tagged headings (H1–H6), giving screen-reader users a navigable outline.'
+                  : 'No H1–H6 tags were detected, so screen-reader users have no heading navigation. This usually means headings weren\'t styled in the source Word file.',
+    headingCount>0? '' : 'Fix at source: apply Word Heading styles and re-export, or re-tag headings in Acrobat.',
+    'WCAG 1.3.1 / 2.4.6 · Guidebook Step 4'));
+
+  // P6 — Reading-order structure present
+  out.push(C('pdf-readorder','Reading-order structure', tagged&&structNodes>3?'pass':'warn','recommended',
+    tagged? (structNodes>3? 'A content structure is present.' : 'Tag tree is present but nearly empty.')
+          : 'No structure — PDF is not tagged.',
+    tagged&&structNodes>3? 'A populated tag tree exists, which defines reading order. Note: this confirms a structure exists, not that the order is correct — verify visually in Acrobat\'s Order panel.'
+          : 'Little or no structure was found, so reading order is undefined.',
+    tagged&&structNodes>3? '' : 'Ensure the source document is well-structured and re-export tagged, then check the Order panel in Acrobat.',
+    'WCAG 1.3.2 · Guidebook Steps 3 & 5'));
+
+  // P7 — Bookmarks / outline
+  out.push(C('pdf-bookmarks','Bookmarks (outline)', (outline&&outline.length)?'pass':'warn','recommended',
+    (outline&&outline.length)? `${outline.length} top-level bookmark(s) present.` : 'No bookmarks found.',
+    (outline&&outline.length)? 'Document bookmarks help all users navigate and should mirror the heading structure.'
+          : 'No bookmark outline was found. The guidebook expects logical bookmarks that include the document title.',
+    (outline&&outline.length)? '' : 'Generate bookmarks from the heading structure (a clickable ToC in Word carries through), or add them in Acrobat.',
+    'Guidebook Step 2: bookmarks logical & include document title'));
+
+  return out;
 }
 
 async function readDocx(zip){
@@ -737,45 +900,78 @@ function C(id,title,status,section,summary,detail,fix,guide,list){
 function escapeHtml(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 /* ============================================================
-   RENDER
+   DASHBOARD + PER-FILE REPORT
    ============================================================ */
-function render(file, ctx, results){
-  $('results').style.display='block';
-
-  // filebar
-  const sizeKB = (file.size/1024).toFixed(0);
-  $('filebar').innerHTML =
-    `<span class="fn">📄 ${escapeHtml(file.name)}</span>
-     <span class="fm">${sizeKB} KB · ${ctx.media.length} media file(s)</span>
-     <span class="spacer"></span>
-     <button class="btn btn-yellow" onclick="window.print()">⬇ Download / Print report</button>
-     <button class="btn btn-ghost" onclick="location.reload()">Check another file</button>`;
-
-  const counts = {pass:0,warn:0,fail:0};
+function tally(results){
+  const counts={pass:0,warn:0,fail:0};
   results.forEach(r=>counts[r.status]++);
-  const reqFails = results.filter(r=>r.section==='required'&&r.status==='fail').length;
-
-  // verdict
-  $('verdict').className = 'verdict '+(reqFails===0?'ok':'no');
-  $('verdict').innerHTML = reqFails===0
-    ? `<span class="big">✅</span><div>No required (guidebook) blockers detected. Review any amber items below, then export to PDF.</div>`
-    : `<span class="big">⛔</span><div><b>${reqFails} required issue(s)</b> should be fixed in Word before exporting to PDF.</div>`;
-
-  // scorecard
-  $('scorecard').innerHTML = `
-    ${scoreCard('total',results.length,'Checks run')}
-    ${scoreCard('pass',counts.pass,'Passed')}
-    ${scoreCard('warn',counts.warn,'Review')}
-    ${scoreCard('fail',counts.fail,'Failed')}`;
-
-  // store + draw report (default view = standard)
-  LAST_RESULTS = results;
-  setView('standard');
-  window.scrollTo({top:0,behavior:'smooth'});
+  const reqFails=results.filter(r=>r.section==='required'&&r.status==='fail').length;
+  return {counts,reqFails};
+}
+function verdictPill(rec){
+  if(rec.error) return `<span class="pill-v err">Error</span>`;
+  const {counts,reqFails}=tally(rec.results);
+  if(reqFails>0) return `<span class="pill-v fail">Fix needed</span>`;
+  if(counts.warn>0) return `<span class="pill-v warn">Review</span>`;
+  return `<span class="pill-v pass">Clean</span>`;
 }
 
-let LAST_RESULTS = [];
+function renderDashboard(){
+  $('batchbar').innerHTML =
+    `<span class="fn">${FILES.length} file${FILES.length>1?'s':''} checked</span>
+     <span class="spacer"></span>
+     <button class="btn btn-yellow" onclick="window.print()">⬇ Download / Print</button>
+     <button class="btn btn-ghost" onclick="location.reload()">Check other files</button>`;
+
+  if(FILES.length>1){
+    const rows = FILES.map((f,i)=>{
+      const t = f.error? {counts:{pass:0,warn:0,fail:0}} : tally(f.results);
+      return `<tr class="srow" data-i="${i}" onclick="openReport(${i})">
+        <td class="s-file">${f.type==='pdf'?'📕':'📄'} ${escapeHtml(f.name)}</td>
+        <td><span class="ftype ${f.type}">${f.type.toUpperCase()}</span></td>
+        <td>${verdictPill(f)}</td>
+        <td class="s-num pass">${f.error?'–':t.counts.pass}</td>
+        <td class="s-num warn">${f.error?'–':t.counts.warn}</td>
+        <td class="s-num fail">${f.error?'–':t.counts.fail}</td>
+      </tr>`;
+    }).join('');
+    $('summary').innerHTML =
+      `<div class="section-head"><h2>Summary</h2><span class="desc">Click a file to see its full report.</span></div>
+       <table class="summary-tbl">
+         <thead><tr><th>File</th><th>Type</th><th>Status</th><th>✓</th><th>!</th><th>✕</th></tr></thead>
+         <tbody>${rows}</tbody>
+       </table>`;
+  }else{
+    $('summary').innerHTML='';
+  }
+}
+
+function openReport(i){
+  CURRENT=i;
+  document.querySelectorAll('.srow').forEach(r=>r.classList.toggle('sel', +r.dataset.i===i));
+  const rec=FILES[i];
+  if(rec.error){
+    $('verdict').className='verdict no';
+    $('verdict').innerHTML=`<span class="big">⚠</span><div>Couldn't read <b>${escapeHtml(rec.name)}</b>. It may be corrupted, password-protected, or not a valid ${rec.type.toUpperCase()}. <span style="font-weight:400">(${escapeHtml(rec.error)})</span></div>`;
+    $('scorecard').innerHTML=''; $('viewToggle').innerHTML=''; $('report').innerHTML='';
+    return;
+  }
+  const {counts,reqFails}=tally(rec.results);
+  const isPdf=rec.type==='pdf';
+  $('verdict').className='verdict '+(reqFails===0?'ok':'no');
+  $('verdict').innerHTML = reqFails===0
+    ? `<span class="big">✅</span><div><b>${escapeHtml(rec.name)}</b> — no required ${isPdf?'accessibility':'(guidebook)'} blockers detected. Review any amber items, then ${isPdf?'it\'s in good shape.':'export to PDF.'}</div>`
+    : `<span class="big">⛔</span><div><b>${escapeHtml(rec.name)}</b> — <b>${reqFails} required issue(s)</b> to fix ${isPdf?'in this PDF (ideally re-fix at the Word source).':'in Word before exporting to PDF.'}</div>`;
+  $('scorecard').innerHTML =
+    `${scoreCard('total',rec.results.length,'Checks run')}
+     ${scoreCard('pass',counts.pass,'Passed')}
+     ${scoreCard('warn',counts.warn,'Review')}
+     ${scoreCard('fail',counts.fail,'Failed')}`;
+  setView(CURRENT_VIEW);
+}
+
 function setView(v){
+  CURRENT_VIEW=v;
   $('viewToggle').innerHTML =
     `<div class="vtoggle">
        <button class="vbtn ${v==='standard'?'on':''}" onclick="setView('standard')">Standard report</button>
@@ -784,71 +980,73 @@ function setView(v){
   drawReport(v);
 }
 function drawReport(v){
-  const results = LAST_RESULTS;
+  const rec=FILES[CURRENT]; if(!rec||rec.error) return;
+  const results=rec.results;
   if(v==='steps'){
-    $('report').innerHTML = stepwiseHTML(results);
+    $('report').innerHTML = stepwiseHTML(results, rec.type);
   }else{
     const req = results.filter(r=>r.section==='required');
-    const rec = results.filter(r=>r.section==='recommended');
+    const rec2 = results.filter(r=>r.section==='recommended');
+    const reqTitle = rec.type==='pdf' ? '1 · Required — PDF accessibility (WCAG / PDF-UA)' : '1 · Required — Guidebook';
+    const reqDesc  = rec.type==='pdf'
+      ? 'Core accessibility requirements for the exported PDF. Best fixed at the Word source, then re-export.'
+      : 'From "Preparing a Word document" (Guidebook p.16) plus reading-order/tag prep. Fix these before exporting to PDF.';
     $('report').innerHTML =
-      sectionBlock('1 · Required — Guidebook','badge-req','From "Preparing a Word document" (Guidebook p.16). Fix these before exporting to PDF.',req) +
-      sectionBlock('2 · Recommended — WCAG & best practice','badge-rec','Best-practice and WCAG checks. Strongly advised, not hard blockers.',rec);
-    // attach expand toggles + open failures
-    document.querySelectorAll('.check-top').forEach(t=>{
-      t.addEventListener('click',()=>t.closest('.check').classList.toggle('open'));
-    });
-    document.querySelectorAll('.check.fail').forEach(c=>c.classList.add('open'));
+      sectionBlock(reqTitle,'badge-req',reqDesc,req) +
+      sectionBlock('2 · Recommended — WCAG & best practice','badge-rec','Best-practice and WCAG checks. Strongly advised, not hard blockers.',rec2);
   }
+  // expand toggles + open failures (both views)
+  document.querySelectorAll('.check-top').forEach(t=>{
+    t.addEventListener('click',()=>t.closest('.check').classList.toggle('open'));
+  });
+  document.querySelectorAll('.check.fail').forEach(c=>c.classList.add('open'));
 }
 
 /* ---------- Stepwise view: map checks onto the guidebook's own workflow ---------- */
 function byId(results,id){ return results.find(r=>r.id===id); }
-function miniRow(r){
-  const icon = r.status==='pass'?'✓':(r.status==='warn'?'!':'✕');
-  return `<div class="mini ${r.status}"><span class="mini-ic">${icon}</span><span class="mini-t">${r.title}</span><span class="mini-s">${r.summary}</span></div>`;
-}
 function stepCard(n,title,ids,results,manualNote){
   const items = ids.map(id=>byId(results,id)).filter(Boolean);
   let st;
-  if(manualNote) st='manual';
-  else if(items.length===0) st='na';
-  else if(items.some(i=>i.status==='fail')) st='fail';
-  else if(items.some(i=>i.status==='warn')) st='warn';
-  else st='pass';
-  const badge = {pass:'✓ Checked',warn:'! Review',fail:'✕ Fix in Word',manual:'⬡ Acrobat step',na:'— N/A'}[st];
+  if(items.length){ st = items.some(i=>i.status==='fail')?'fail':(items.some(i=>i.status==='warn')?'warn':'pass'); }
+  else if(manualNote){ st='manual'; }
+  else { st='na'; }
+  const badge = {pass:'✓ Checked',warn:'! Review',fail:'✕ Fix',manual:'⬡ Acrobat step',na:'— N/A'}[st];
   return `<div class="stepcard ${st}">
     <div class="step-head">
       <div class="step-n">${n}</div>
       <div class="step-title">${title}</div>
       <div class="step-badge ${st}">${badge}</div>
     </div>
-    ${items.map(miniRow).join('')}
+    ${items.map(checkCard).join('')}
     ${manualNote?`<div class="manual-note">${manualNote}</div>`:''}
   </div>`;
 }
-function stepwiseHTML(results){
-  let h = `<div class="step-intro">This view maps each automated check onto the guidebook's own workflow. The Word stage is fully checked here; <b>Steps 5–7 are Acrobat-only</b> and can't be automated from a Word file — they're listed so the team doesn't forget them after export.</div>`;
+function stepwiseHTML(results, type){
+  const isPdf = type==='pdf';
+  let h = `<div class="step-intro">This view maps each check onto the guidebook's own workflow${isPdf?' for the exported PDF':''}. ${isPdf?'Steps 5 & 7 are manual in Acrobat; Step 6 is partly automated here.':'<b>Steps 5–7 are Acrobat-only</b> and can\'t be automated from a Word file'} — listed so nothing is forgotten. Each item expands for the full description and fix.</div>`;
 
-  // Stage 1 — Preparing the Word document (p.16)
-  h += `<div class="section-head"><span class="badge badge-req">Word stage</span><h2>Preparing the Word document — Guidebook p.16</h2></div>`;
-  h += stepCard('✎','ToC items are clickable',['toc'],results);
-  h += stepCard('✎','All figures have alt text',['alt'],results);
-  h += stepCard('✎','Heading structure (H1 Module/Unit → H6)',['head'],results);
-  h += stepCard('✎','Captions use the caption function',['cap'],results);
-  h += stepCard('✎','Bibliography URLs are active links',['biblio'],results);
+  if(!isPdf){
+    // Word stage — Preparing the Word document (p.16)
+    h += `<div class="section-head"><span class="badge badge-req">Word stage</span><h2>Preparing the Word document — Guidebook p.16</h2></div>`;
+    h += stepCard('✎','ToC items are clickable',['toc'],results);
+    h += stepCard('✎','All figures have alt text',['alt'],results);
+    h += stepCard('✎','Heading structure (H1 Module/Unit → H6)',['head'],results);
+    h += stepCard('✎','Captions use the caption function',['cap'],results);
+    h += stepCard('✎','Bibliography URLs are active links',['biblio'],results);
+  }
 
-  // Stage 2 — Ensuring the PDF is accessible & secure (Steps 1–7)
-  h += `<div class="section-head" style="margin-top:30px"><span class="badge badge-rec">PDF stage</span><h2>Ensuring the PDF is accessible &amp; secure — Steps 1–7</h2></div>`;
-  h += stepCard('1','Scan document for any glaring errors',['alt','head'],results);
-  h += stepCard('2','Bookmarks are logical &amp; include the document title',['toc','title'],results);
-  h += stepCard('3','Fix logical reading order (empty boxes, figures, tables)',['empty','alt','tblstruct'],results);
-  h += stepCard('4','Manually check the tag tree (ToC, captions, lists, tables, bibliography)',['head','cap','list','tbl','tblstruct','biblio'],results);
-  h += stepCard('5','Double-check reading order',[],results,
-    '<b>Acrobat only.</b> Re-verify the reading order in the Reading Order / Order panel after export. Getting the Word structure clean above means far less to fix here.');
-  h += stepCard('6','Run an Accessibility Check &amp; correct faults',[],results,
-    '<b>Acrobat only.</b> Run Acrobat\'s Accessibility Check. This pre-check is essentially a preview of those results — clearing the items above should leave few or no faults.');
+  // PDF stage — Ensuring the PDF is accessible & secure (Steps 1–7)
+  h += `<div class="section-head"${isPdf?'':' style="margin-top:30px"'}><span class="badge badge-rec">PDF stage</span><h2>Ensuring the PDF is accessible &amp; secure — Steps 1–7</h2></div>`;
+  h += stepCard('1','Scan document for any glaring errors',['alt','head','pdf-tagged','pdf-headings','pdf-figalt'],results);
+  h += stepCard('2','Bookmarks are logical &amp; include the document title',['toc','title','pdf-title','pdf-bookmarks'],results);
+  h += stepCard('3','Fix logical reading order (empty boxes, figures, tables)',['empty','alt','tblstruct','pdf-readorder','pdf-figalt'],results);
+  h += stepCard('4','Manually check the tag tree (headings, captions, lists, tables, bibliography)',['head','cap','list','tbl','tblstruct','biblio','pdf-tagged','pdf-headings'],results);
+  h += stepCard('5','Double-check reading order',['pdf-readorder'],results,
+    '<b>Acrobat.</b> Re-verify reading order visually in the Reading Order / Order panel — automated checks confirm a structure exists, not that the order is correct.');
+  h += stepCard('6','Run an Accessibility Check &amp; correct faults',['pdf-tagged','pdf-title','pdf-lang','pdf-figalt'],results,
+    '<b>Also run Acrobat\'s Accessibility Check</b> for the full audit (contrast, etc.). The items above are a preview of the structural faults it reports.');
   h += stepCard('7','Secure the PDF',[],results,
-    '<b>Acrobat only.</b> Apply the document security/permissions per the guidebook. This cannot be done from Word.');
+    '<b>Acrobat only.</b> Apply the document security/permissions per the guidebook. This cannot be automated.');
   return h;
 }
 
@@ -883,7 +1081,7 @@ function checkCard(r){
     ${hasDetail?`<div class="check-detail">
       ${r.detail?`<div style="font-size:13px;color:var(--ink-2);margin-bottom:8px">${r.detail}</div>`:''}
       ${list}
-      ${r.fix?`<div class="fix"><b>How to fix in Word:</b> ${r.fix}</div>`:''}
+      ${r.fix?`<div class="fix"><b>How to fix:</b> ${r.fix}</div>`:''}
       ${r.guide?`<div class="guide-ref">📘 ${r.guide}</div>`:''}
     </div>`:''}
   </div>`;
