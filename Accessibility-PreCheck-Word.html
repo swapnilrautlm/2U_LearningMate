@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accessibility Pre-Check — Word Storyboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{
+  --brand-yellow:#FECF48; --brand-blue:#1376D4; --brand-blue-700:#0F5FAB;
+  --brand-blue-50:#EAF3FC; --brand-black:#080808;
+  --ink:#080808; --ink-2:#2C2F33; --ink-3:#5A5F66;
+  --line:#E5E8EC; --bg:#FFFFFF; --bg-alt:#F8FAFC;
+  --bg-yellow-soft:#FFF6D6;
+  --pass:#2EA160; --pass-bg:#E8F6EE;
+  --warn:#E6A700; --warn-bg:#FFF6D6;
+  --fail:#E04C2B; --fail-bg:#FCEBE6;
+  --font:"proxima-nova","Proxima Nova","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:var(--font);color:var(--ink);background:var(--bg-alt);-webkit-font-smoothing:antialiased}
+body{line-height:1.5;font-size:14px}
+a{color:var(--brand-blue-700);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* Top bar */
+.topbar{background:#fff;border-bottom:1px solid var(--line)}
+.topbar-inner{max-width:1100px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand-left,.brand-right{display:flex;align-items:center;gap:12px}
+.lm-logo{height:30px;width:auto;display:block}
+.twou-logo{display:block;width:34px;height:34px}
+.app-tag{font-size:12px;font-weight:700;color:var(--ink-3);border-left:1px solid var(--line);padding-left:12px;letter-spacing:.3px}
+
+/* Hero / dropzone */
+.wrap{max-width:1100px;margin:0 auto;padding:24px}
+.hero{background:linear-gradient(135deg,var(--brand-blue) 0%,var(--brand-blue-700) 100%);color:#fff;border-radius:14px;padding:28px 30px;margin-bottom:22px}
+.hero h1{margin:0 0 6px;font-size:23px;font-weight:800;letter-spacing:-.3px}
+.hero p{margin:0;font-size:14px;opacity:.92;max-width:760px}
+.hero .pill{display:inline-block;background:var(--brand-yellow);color:var(--brand-black);font-weight:700;font-size:11px;padding:4px 10px;border-radius:20px;margin-bottom:12px;letter-spacing:.4px;text-transform:uppercase}
+
+.dropzone{background:#fff;border:2px dashed var(--brand-blue);border-radius:14px;padding:42px 24px;text-align:center;cursor:pointer;transition:.15s;margin-bottom:22px}
+.dropzone:hover{background:var(--brand-blue-50)}
+.dropzone.drag{background:var(--brand-blue-50);border-color:var(--brand-blue-700)}
+.dropzone .dz-icon{width:62px;height:62px;margin:0 auto 14px;border-radius:14px;background:linear-gradient(135deg,var(--brand-blue) 0%,var(--brand-yellow) 100%);display:flex;align-items:center;justify-content:center;font-size:30px}
+.dropzone h2{margin:0 0 6px;font-size:18px;font-weight:700}
+.dropzone p{margin:0;color:var(--ink-3);font-size:13px}
+.dropzone .browse{color:var(--brand-blue-700);font-weight:700;text-decoration:underline}
+.priv{font-size:12px;color:var(--ink-3);text-align:center;margin:-10px 0 22px;display:flex;align-items:center;justify-content:center;gap:6px}
+
+/* Results */
+#results{display:none}
+.filebar{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.filebar .fn{font-weight:700;color:var(--brand-blue-700);font-size:14px}
+.filebar .fm{color:var(--ink-3);font-size:12px}
+.filebar .spacer{flex:1}
+.btn{appearance:none;border:0;font:inherit;font-weight:700;font-size:13px;padding:9px 16px;border-radius:7px;cursor:pointer}
+.btn-primary{background:var(--brand-blue);color:#fff}
+.btn-primary:hover{background:var(--brand-blue-700)}
+.btn-yellow{background:var(--brand-yellow);color:var(--brand-black)}
+.btn-yellow:hover{background:#F2C033}
+.btn-ghost{background:transparent;color:var(--ink-2);border:1px solid var(--line)}
+.btn-ghost:hover{background:var(--bg-alt);border-color:var(--ink-3)}
+
+/* Scorecard */
+.scorecard{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.score{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;text-align:center;position:relative;overflow:hidden}
+.score .num{font-size:34px;font-weight:800;line-height:1}
+.score .lbl{font-size:12px;color:var(--ink-3);margin-top:6px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.score .bar{position:absolute;top:0;left:0;right:0;height:4px}
+.score.pass .num{color:var(--pass)} .score.pass .bar{background:var(--pass)}
+.score.warn .num{color:var(--warn)} .score.warn .bar{background:var(--warn)}
+.score.fail .num{color:var(--fail)} .score.fail .bar{background:var(--fail)}
+.score.total .num{color:var(--brand-blue)} .score.total .bar{background:var(--brand-blue)}
+
+.verdict{border-radius:12px;padding:16px 20px;margin-bottom:24px;font-weight:600;font-size:15px;display:flex;align-items:center;gap:12px}
+.verdict .big{font-size:22px}
+.verdict.ok{background:var(--pass-bg);color:#1d6b42;border:1px solid #bfe6cf}
+.verdict.no{background:var(--fail-bg);color:#a8341a;border:1px solid #f3c4b8}
+
+/* Section + check cards */
+.section-head{display:flex;align-items:center;gap:12px;margin:30px 0 14px}
+.section-head h2{margin:0;font-size:18px;font-weight:800}
+.section-head .desc{font-size:12.5px;color:var(--ink-3);font-weight:500}
+.section-head .badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.4px}
+.badge-req{background:var(--fail-bg);color:#a8341a}
+.badge-rec{background:var(--brand-blue-50);color:var(--brand-blue-700)}
+
+.check{background:#fff;border:1px solid var(--line);border-left-width:5px;border-radius:10px;margin-bottom:12px;overflow:hidden}
+.check.pass{border-left-color:var(--pass)}
+.check.warn{border-left-color:var(--warn)}
+.check.fail{border-left-color:var(--fail)}
+.check-top{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;cursor:pointer}
+.check-icon{flex:none;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;margin-top:1px}
+.check.pass .check-icon{background:var(--pass)}
+.check.warn .check-icon{background:var(--warn)}
+.check.fail .check-icon{background:var(--fail)}
+.check-body{flex:1}
+.check-title{font-weight:700;font-size:14.5px;margin:0 0 2px}
+.check-sub{font-size:13px;color:var(--ink-2);margin:0}
+.check-meta{font-size:11.5px;color:var(--ink-3);margin-top:5px}
+.chev{flex:none;color:var(--ink-3);transition:.15s;font-size:13px;margin-top:3px}
+.check.open .chev{transform:rotate(90deg)}
+.check-detail{display:none;padding:0 16px 16px 52px}
+.check.open .check-detail{display:block}
+.check-detail .fix{background:var(--bg-alt);border-radius:8px;padding:12px 14px;font-size:13px;margin-top:4px}
+.check-detail .fix b{color:var(--ink)}
+.check-detail ul{margin:8px 0 0;padding-left:18px}
+.check-detail li{margin-bottom:5px;font-size:13px;color:var(--ink-2)}
+.tag{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:5px;padding:1px 7px;font-size:11.5px;color:var(--ink-2);margin:2px 4px 2px 0;font-family:ui-monospace,Menlo,Consolas,monospace}
+.guide-ref{font-size:11px;color:var(--ink-3);font-style:italic;margin-top:8px}
+
+.foot{max-width:1100px;margin:30px auto 50px;padding:0 24px;font-size:12px;color:var(--ink-3);text-align:center}
+.spinner{display:none;text-align:center;padding:40px;color:var(--ink-3)}
+.spinner.show{display:block}
+.lds{width:38px;height:38px;border:4px solid var(--line);border-top-color:var(--brand-blue);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error-box{display:none;background:var(--fail-bg);border:1px solid #f3c4b8;color:#a8341a;border-radius:10px;padding:14px 18px;margin-bottom:18px;font-size:13px;font-weight:600}
+
+/* View toggle */
+.vtoggle{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:9px;padding:3px;margin-bottom:20px;gap:2px}
+.vbtn{appearance:none;border:0;background:transparent;font:inherit;font-weight:700;font-size:13px;color:var(--ink-3);padding:8px 16px;border-radius:7px;cursor:pointer}
+.vbtn.on{background:var(--brand-blue);color:#fff}
+.vbtn:not(.on):hover{background:var(--bg-alt);color:var(--ink-2)}
+.step-intro{background:var(--brand-blue-50);border:1px solid #cfe3f7;border-radius:10px;padding:13px 16px;font-size:13px;color:var(--ink-2);margin-bottom:20px}
+
+/* Step cards */
+.stepcard{background:#fff;border:1px solid var(--line);border-radius:11px;margin-bottom:14px;overflow:hidden;border-left-width:5px}
+.stepcard.pass{border-left-color:var(--pass)}
+.stepcard.warn{border-left-color:var(--warn)}
+.stepcard.fail{border-left-color:var(--fail)}
+.stepcard.manual{border-left-color:var(--ink-3)}
+.stepcard.na{border-left-color:var(--line)}
+.step-head{display:flex;align-items:center;gap:13px;padding:14px 16px}
+.step-n{flex:none;min-width:30px;height:30px;padding:0 8px;border-radius:7px;background:var(--brand-blue-50);color:var(--brand-blue-700);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+.stepcard.manual .step-n{background:#eef0f2;color:var(--ink-3)}
+.step-title{flex:1;font-weight:700;font-size:14.5px}
+.step-badge{flex:none;font-size:11.5px;font-weight:800;padding:5px 11px;border-radius:20px;white-space:nowrap}
+.step-badge.pass{background:var(--pass-bg);color:#1d6b42}
+.step-badge.warn{background:var(--warn-bg);color:#8a6500}
+.step-badge.fail{background:var(--fail-bg);color:#a8341a}
+.step-badge.manual{background:#eef0f2;color:var(--ink-3)}
+.step-badge.na{background:#f4f6f8;color:var(--ink-3)}
+.mini{display:flex;align-items:flex-start;gap:9px;padding:9px 16px 9px 18px;border-top:1px solid var(--line);font-size:13px}
+.mini-ic{flex:none;width:19px;height:19px;border-radius:50%;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.mini.pass .mini-ic{background:var(--pass)}
+.mini.warn .mini-ic{background:var(--warn)}
+.mini.fail .mini-ic{background:var(--fail)}
+.mini-t{font-weight:700;color:var(--ink);flex:none}
+.mini-s{color:var(--ink-3);flex:1}
+.manual-note{border-top:1px solid var(--line);padding:11px 16px;font-size:13px;color:var(--ink-2);background:var(--bg-alt)}
+.manual-note b{color:var(--ink)}
+
+@media print{
+  .topbar,.dropzone,.priv,.filebar,.hero p,.no-print{display:none!important}
+  body{background:#fff}
+  .check-detail{display:block!important}
+  .check{break-inside:avoid;border:1px solid #ccc}
+  .wrap{max-width:100%}
+}
+@media(max-width:720px){.scorecard{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand-left">
+      <svg class="lm-logo" viewBox="0 0 320 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LearningMate">
+        <text x="0" y="34" font-family="Inter,'Proxima Nova',sans-serif" font-size="34" font-weight="800" fill="#8DC63F" letter-spacing="-1">Learning</text>
+        <text x="166" y="34" font-family="Inter,'Proxima Nova',sans-serif" font-size="34" font-weight="800" fill="#1B4F8C" letter-spacing="-1">Mate</text>
+        <line x1="2" y1="44" x2="270" y2="44" stroke="#1B4F8C" stroke-width="1" opacity="0.25"/>
+        <text x="2" y="58" font-family="Inter,'Proxima Nova',sans-serif" font-size="11" font-weight="700" fill="#1B4F8C" letter-spacing="3">A STRAIVE COMPANY</text>
+      </svg>
+      <span class="app-tag">Accessibility Pre-Check</span>
+    </div>
+    <div class="brand-right">
+      <svg class="twou-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="2U Inc">
+        <circle cx="50" cy="50" r="48" fill="#1376D4"/>
+        <path d="M22 38 c0-8 6-14 14-14 c8 0 14 6 14 14 c0 6-4 11-10 14 l-12 8 h22 v8 h-32 v-8 l18-12 c4-2 6-5 6-9 c0-4-3-7-7-7 c-4 0-7 3-7 7 z" fill="#FFFFFF"/>
+        <path d="M55 24 h8 v30 c0 4 3 7 7 7 c4 0 7-3 7-7 v-30 h8 v30 c0 8-7 15-15 15 c-8 0-15-7-15-15 z" fill="#FFFFFF"/>
+        <circle cx="86" cy="74" r="5" fill="none" stroke="#FFFFFF" stroke-width="1"/>
+        <text x="86" y="77" font-family="Arial,sans-serif" font-size="6" fill="#FFFFFF" text-anchor="middle" font-weight="700">R</text>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <span class="pill">Word stage · before PDF export</span>
+    <h1>Storyboard Accessibility Pre-Check</h1>
+    <p>Drop in a Word storyboard and this tool scans it against the <b>Learning Accessibility Guidebook</b> and WCAG best practice — surfacing the red flags to fix <i>in Word</i> first, so the PDF export passes Acrobat's checker cleanly. Everything runs in your browser; the file never leaves your computer.</p>
+  </div>
+
+  <div class="error-box" id="errorBox"></div>
+
+  <div class="dropzone" id="dropzone">
+    <div class="dz-icon">📄</div>
+    <h2>Drop your .docx here</h2>
+    <p>or <span class="browse">browse to choose a file</span> &nbsp;·&nbsp; Word documents only (.docx)</p>
+    <input type="file" id="fileInput" accept=".docx" style="display:none">
+  </div>
+  <div class="priv">🔒 Processed entirely in your browser — nothing is uploaded.</div>
+
+  <div class="spinner" id="spinner"><div class="lds"></div>Analysing document…</div>
+
+  <div id="results">
+    <div class="filebar no-print" id="filebar"></div>
+    <div id="verdict"></div>
+    <div class="scorecard" id="scorecard"></div>
+    <div id="viewToggle" class="no-print"></div>
+    <div id="report"></div>
+  </div>
+</div>
+
+<div class="foot">
+  Checks are based on the <b>Learning Accessibility Guidebook</b> ("Preparing a Word document", p.16) and WCAG 2.0 best practice. This tool flags likely issues for human review; it does not replace Acrobat's final accessibility check after PDF export.
+</div>
+
+<script>
+/* ============================================================
+   Accessibility Pre-Check for Word (.docx) storyboards
+   Runs fully client-side. Parses the OOXML inside the .docx.
+   ============================================================ */
+const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+const $ = id => document.getElementById(id);
+
+const dropzone = $('dropzone'), fileInput = $('fileInput');
+dropzone.addEventListener('click', ()=>fileInput.click());
+fileInput.addEventListener('change', e=>{ if(e.target.files[0]) handleFile(e.target.files[0]); });
+['dragenter','dragover'].forEach(ev=>dropzone.addEventListener(ev,e=>{e.preventDefault();dropzone.classList.add('drag');}));
+['dragleave','drop'].forEach(ev=>dropzone.addEventListener(ev,e=>{e.preventDefault();dropzone.classList.remove('drag');}));
+dropzone.addEventListener('drop',e=>{ const f=e.dataTransfer.files[0]; if(f) handleFile(f); });
+
+function showError(msg){ const b=$('errorBox'); b.textContent='⚠ '+msg; b.style.display='block'; }
+function clearError(){ $('errorBox').style.display='none'; }
+
+async function handleFile(file){
+  clearError();
+  if(!file.name.toLowerCase().endsWith('.docx')){
+    showError('Please choose a .docx file. The older .doc format isn\'t supported — open it in Word and Save As .docx.');
+    return;
+  }
+  $('results').style.display='none';
+  $('spinner').classList.add('show');
+  try{
+    const buf = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(buf);
+    const ctx = await readDocx(zip);
+    const results = runChecks(ctx);
+    render(file, ctx, results);
+  }catch(err){
+    console.error(err);
+    showError('Could not read this file. It may be corrupted or not a valid Word document. ('+err.message+')');
+  }finally{
+    $('spinner').classList.remove('show');
+  }
+}
+
+async function readDocx(zip){
+  const get = async p => { const f=zip.file(p); return f ? await f.async('string') : null; };
+  const docXml   = await get('word/document.xml');
+  if(!docXml) throw new Error('No word/document.xml found');
+  const stylesXml = await get('word/styles.xml');
+  const settingsXml = await get('word/settings.xml');
+  const relsXml = await get('word/_rels/document.xml.rels');
+  const coreXml = await get('docProps/core.xml');
+  const parser = new DOMParser();
+  const docDoc = parser.parseFromString(docXml,'application/xml');
+  const stylesDoc = stylesXml ? parser.parseFromString(stylesXml,'application/xml') : null;
+  const relsDoc = relsXml ? parser.parseFromString(relsXml,'application/xml') : null;
+  const coreDoc = coreXml ? parser.parseFromString(coreXml,'application/xml') : null;
+  // media files
+  const media = Object.keys(zip.files).filter(n=>/^word\/media\//.test(n));
+  return { zip, docXml, stylesXml, settingsXml, relsXml,
+           docDoc, stylesDoc, relsDoc, coreDoc, media };
+}
+
+/* ---------- small helpers over the DOM ----------
+   Use a wildcard namespace so lookups work regardless of which
+   OOXML namespace a tag lives in (e.g. wp:docPr is in the drawing
+   namespace, not the main w: namespace). Local names like p, t,
+   pStyle, docPr, hyperlink, tbl, tr, style, name are unambiguous. */
+const el = (node,tag)=>Array.from(node.getElementsByTagNameNS('*',tag));
+function paraText(p){
+  return el(p,'t').map(t=>t.textContent).join('');
+}
+function paraStyle(p){
+  const ps = el(p,'pStyle')[0];
+  return ps ? ps.getAttributeNS(W,'val') : null;
+}
+// map a style id to a heading level using styles.xml (handles renamed styles)
+function buildHeadingMap(stylesDoc){
+  const map = {}; // styleId -> level (1..6)
+  if(!stylesDoc) return map;
+  el(stylesDoc,'style').forEach(s=>{
+    const id = s.getAttributeNS(W,'styleId') || '';
+    let name = '';
+    const nEl = el(s,'name')[0]; if(nEl) name = (nEl.getAttributeNS(W,'val')||'').toLowerCase();
+    const test = (id+' '+name).toLowerCase();
+    const m = test.match(/heading\s*([1-6])/) || id.match(/^Heading([1-6])$/i);
+    if(m) map[id] = parseInt(m[1],10);
+  });
+  // common defaults if not in styles
+  for(let i=1;i<=6;i++){ if(!map['Heading'+i]) map['Heading'+i]=i; }
+  return map;
+}
+
+/* ============================================================
+   CHECK ENGINE
+   Each check returns {id,title,status,summary,detail,fix,guide,section}
+   status: 'pass' | 'warn' | 'fail'
+   section: 'required' | 'recommended'
+   ============================================================ */
+function runChecks(ctx){
+  const {docDoc, stylesDoc, settingsXml, stylesXml, docXml, relsDoc, coreDoc} = ctx;
+  const headingMap = buildHeadingMap(stylesDoc);
+  const paras = el(docDoc,'p');
+  const out = [];
+
+  /* ---- collect images (drawings) ---- */
+  const docPrs = el(docDoc,'docPr'); // wp:docPr id/name/descr/title
+  const images = docPrs.map(d=>({
+    name: d.getAttribute('name')||'',
+    descr: (d.getAttribute('descr')||'').trim(),
+    title: (d.getAttribute('title')||'').trim()
+  }));
+  // also legacy VML images (older shapes)
+  const vmlAlt = Array.from(docDoc.getElementsByTagName('v:shape')).length;
+
+  /* ---- collect headings in order ---- */
+  const headings = [];
+  paras.forEach(p=>{
+    const st = paraStyle(p);
+    if(st && headingMap[st]!==undefined){
+      headings.push({ level: headingMap[st], text: paraText(p).trim(), style: st });
+    }
+  });
+
+  /* ---- hyperlinks ---- */
+  const hyperlinks = el(docDoc,'hyperlink');
+  const anchorLinks = hyperlinks.filter(h=>h.getAttributeNS(W,'anchor'));
+  const extLinks = hyperlinks.filter(h=>h.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id'));
+  // external rels (TargetMode=External)
+  let extRelCount = 0;
+  if(relsDoc){
+    Array.from(relsDoc.getElementsByTagName('Relationship')).forEach(r=>{
+      if((r.getAttribute('TargetMode')||'')==='External' && /hyperlink/i.test(r.getAttribute('Type')||'')) extRelCount++;
+    });
+  }
+
+  /* ===========================================================
+     SECTION 1 — REQUIRED (Guidebook p.16 "Preparing a Word document")
+     =========================================================== */
+
+  // R1 — Figures have alt text
+  (function(){
+    const missing = images.filter(im=>!im.descr && !im.title);
+    if(images.length===0){
+      out.push(C('alt','Figure alt text','warn','required',
+        'No images detected in this document.',
+        'No <w:drawing> images were found. If your storyboard contains figures, videos thumbnails, polls or GIFs, make sure they are inserted as images (not pasted as floating objects) so alt text can be checked.',
+        'Insert figures as inline images, then right-click → Edit Alt Text.',
+        'Guidebook p.16: "Ensure that all figures have alt text in the metadata."'));
+      return;
+    }
+    if(missing.length===0){
+      out.push(C('alt','Figure alt text','pass','required',
+        `All ${images.length} image(s) have alt text in the metadata.`,
+        'Every detected image has a non-empty Alt Text description.',
+        '', 'Guidebook p.16 · Alt text cheat sheet pp.12–15', images.map(i=>i.name)));
+    }else{
+      out.push(C('alt','Figure alt text','fail','required',
+        `${missing.length} of ${images.length} image(s) are missing alt text.`,
+        'These images have no Alt Text in the metadata. Screen-reader users will get nothing for them, and Acrobat will fail "Figures alternate text".',
+        'For each image: right-click → <b>Edit Alt Text</b> → write a concise description (or mark as decorative if it carries no meaning).',
+        'Guidebook p.16 + alt text cheat sheet pp.12–15',
+        missing.map(i=>i.name||'(unnamed image)')));
+    }
+  })();
+
+  // R2 — Heading structure
+  (function(){
+    const issues = [];
+    const h1s = headings.filter(h=>h.level===1);
+    const h2s = headings.filter(h=>h.level===2);
+    if(headings.length===0){
+      out.push(C('head','Heading structure','fail','required',
+        'No heading styles found — the document has no navigable structure.',
+        'No paragraphs use Heading 1–6 styles. Acrobat will have no tag hierarchy and screen-reader users cannot navigate by heading.',
+        'Apply Word Heading styles: <b>Heading 1</b> = Module & Unit number, <b>Heading 2</b> = document title, <b>Heading 3</b> = main sections, <b>Heading 4–6</b> = sub-sections.',
+        'Guidebook p.16: heading structure'));
+      return;
+    }
+    if(h1s.length===0) issues.push('No Heading 1 found — H1 should be the Module & Unit number.');
+    if(h1s.length>1) issues.push(`${h1s.length} Heading 1s found — there should normally be a single H1 (Module & Unit number).`);
+    if(h2s.length===0) issues.push('No Heading 2 found — H2 should be the document title.');
+    // skipped levels
+    let prev = 0; const skips=[];
+    headings.forEach(h=>{
+      if(prev && h.level > prev+1) skips.push(`"${h.text||'(untitled)'}" jumps from H${prev} to H${h.level}`);
+      prev = h.level;
+    });
+    if(skips.length) issues.push('Skipped heading levels: '+skips.join('; '));
+    // empty headings
+    const empties = headings.filter(h=>!h.text);
+    if(empties.length) issues.push(`${empties.length} empty heading(s) — headings with no text confuse navigation.`);
+
+    const outline = headings.map(h=>`H${h.level}: ${h.text||'(empty)'}`);
+    if(issues.length===0){
+      out.push(C('head','Heading structure','pass','required',
+        `Clean hierarchy — ${headings.length} headings, no skipped levels.`,
+        'Headings follow a logical H1→H6 order with a single H1 and a document-title H2.',
+        '','Guidebook p.16: heading structure', outline));
+    }else{
+      const status = (h1s.length===0||skips.length||empties.length) ? 'fail':'warn';
+      out.push(C('head','Heading structure',status,'required',
+        `${issues.length} heading issue(s) to review.`,
+        'Detected outline is shown below. The guidebook expects: H1 = Module & Unit number, H2 = document title, H3 = main sections, H4–6 = sub-sections.',
+        issues.map(i=>'• '+i).join('<br>'),
+        'Guidebook p.16: heading structure', outline));
+    }
+  })();
+
+  // R3 — Table of Contents clickable
+  (function(){
+    const hasTOCField = /TOC\s/.test(docXml) || /\\o\s/.test(docXml);
+    const tocStyleUsed = el(docDoc,'pStyle').some(s=>/^TOC/i.test(s.getAttributeNS(W,'val')||''));
+    if(!hasTOCField && !tocStyleUsed){
+      out.push(C('toc','Clickable Table of Contents','warn','required',
+        'No Table of Contents detected.',
+        'No TOC field or TOC styles were found. If this template is meant to have a ToC, insert it via References → Table of Contents (an automatic ToC is clickable; a typed one is not).',
+        'References → Table of Contents → choose an automatic style.',
+        'Guidebook p.16: "Ensure that the ToC items are clickable."'));
+      return;
+    }
+    if(anchorLinks.length>0){
+      out.push(C('toc','Clickable Table of Contents','pass','required',
+        `Table of Contents present with ${anchorLinks.length} clickable entr${anchorLinks.length===1?'y':'ies'}.`,
+        'The ToC uses internal hyperlinks (anchors), so entries are clickable and will carry through to the PDF as bookmarks/links.',
+        '','Guidebook p.16 + PDF Step 2 (bookmarks)'));
+    }else{
+      out.push(C('toc','Clickable Table of Contents','fail','required',
+        'A Table of Contents exists but its entries are not clickable links.',
+        'A ToC field/style was found but no internal anchor hyperlinks were detected — the entries may have been typed manually or pasted as plain text.',
+        'Delete the manual ToC and insert an automatic one (References → Table of Contents), or update the field so entries become hyperlinks.',
+        'Guidebook p.16: "Ensure that the ToC items are clickable."'));
+    }
+  })();
+
+  // R4 — Captions use the caption function
+  (function(){
+    const captionParas = paras.filter(p=>/^Caption$/i.test(paraStyle(p)||''));
+    if(images.length===0){
+      out.push(C('cap','Captions use the caption style','warn','required',
+        'No images, so no captions to check.',
+        'No figures were detected, so caption styling could not be assessed.',
+        '','Guidebook p.16: "Ensure that the captions have used the caption function."'));
+      return;
+    }
+    if(captionParas.length===0){
+      out.push(C('cap','Captions use the caption style','fail','required',
+        `${images.length} image(s) but no paragraphs use the Caption style.`,
+        'Captions appear to be typed as normal text. Caption-styled paragraphs tag correctly in the PDF; manual text does not.',
+        'Select each caption and apply the <b>Caption</b> style (References → Insert Caption, or the Caption paragraph style).',
+        'Guidebook p.16: "Ensure that the captions have used the caption function."'));
+    }else if(captionParas.length < images.length){
+      out.push(C('cap','Captions use the caption style','warn','required',
+        `${captionParas.length} caption-styled paragraph(s) for ${images.length} image(s).`,
+        'Some figures may not have a caption using the Caption style. Verify each figure has a properly-styled caption (where the template requires one).',
+        'Apply the <b>Caption</b> style to any figure caption typed as normal text.',
+        'Guidebook p.16: caption function'));
+    }else{
+      out.push(C('cap','Captions use the caption style','pass','required',
+        `${captionParas.length} caption(s) use the Caption style.`,
+        'Captions are styled with the Caption style and will tag correctly.',
+        '','Guidebook p.16: caption function'));
+    }
+  })();
+
+  // R5 — Bibliography / URLs are active links
+  (function(){
+    // find raw URL text not inside a hyperlink
+    const allText = el(docDoc,'t').map(t=>t.textContent).join(' ');
+    const urlRe = /\bhttps?:\/\/[^\s)]+/g;
+    const rawUrls = (allText.match(urlRe)||[]);
+    // urls that ARE hyperlinked: text inside <w:hyperlink>
+    const linkedText = extLinks.map(h=>el(h,'t').map(t=>t.textContent).join('')).join(' ');
+    const unlinked = rawUrls.filter(u=>linkedText.indexOf(u.replace(/[.,;]+$/,''))===-1);
+
+    if(rawUrls.length===0 && extRelCount===0){
+      out.push(C('biblio','Active bibliography links','pass','required',
+        'No URLs detected to check.',
+        'No external URLs were found in the document text.',
+        '','Guidebook p.16: active bibliography links'));
+      return;
+    }
+    if(unlinked.length>0){
+      out.push(C('biblio','Active bibliography links','fail','required',
+        `${unlinked.length} URL(s) appear as plain text (not active links).`,
+        'These URLs are written as plain text. Adobe is no longer reliable at auto-creating links, so they must be hyperlinked in Word. Also format the link text as <b>Normal</b> (black, no underline) per the guidebook.',
+        'Select each URL → Insert → Link (or Ctrl+K), then set the font to black with no underline.',
+        'Guidebook p.16: "Check that the URLs in the bibliography entries are active links… formatted as normal (black, no underline)."',
+        unlinked.slice(0,15)));
+    }else{
+      out.push(C('biblio','Active bibliography links','pass','required',
+        `${extRelCount||extLinks.length} external link(s) are active (hyperlinked).`,
+        'URLs are hyperlinked. Manually confirm the link text is formatted as Normal (black, no underline) as the guidebook requires.',
+        '','Guidebook p.16: active bibliography links'));
+    }
+  })();
+
+  // helper: is a paragraph "empty" (no text, no image, no drawing)?
+  function paraIsEmpty(p){
+    if(paraText(p).trim()!=='') return false;
+    if(el(p,'drawing').length || el(p,'pict').length || el(p,'object').length) return false;
+    return true;
+  }
+
+  // R6 — Empty boxes & stray empty paragraphs (Guidebook Steps 3.1 & 4.5)
+  (function(){
+    // empty text-box shapes
+    const textBoxes = el(docDoc,'txbxContent');
+    const emptyBoxes = textBoxes.filter(tb=>el(tb,'t').map(t=>t.textContent).join('').trim()==='');
+    // empty paragraphs + consecutive runs (the real reading-order/tag culprit)
+    const flags = paras.map(paraIsEmpty);
+    const emptyCount = flags.filter(Boolean).length;
+    let maxRun=0, run=0;
+    flags.forEach(f=>{ run=f?run+1:0; if(run>maxRun) maxRun=run; });
+
+    const issues=[];
+    if(emptyBoxes.length) issues.push(`${emptyBoxes.length} empty text box(es) — delete these; they create stray tags and reading-order problems in the PDF.`);
+    if(maxRun>=3) issues.push(`Stacked empty paragraphs detected (${maxRun} in a row) — these become empty &lt;P&gt; tags. Use paragraph spacing instead of blank lines.`);
+
+    if(issues.length===0){
+      out.push(C('empty','Empty boxes & stray paragraphs','pass','required',
+        emptyCount? `No empty text boxes; ${emptyCount} blank paragraph(s) but none stacked together.`
+                  : 'No empty text boxes or stray empty paragraphs.',
+        'Single blank paragraphs used for spacing are generally fine. Stacked blank lines and empty text boxes are what create empty &lt;P&gt; tags and reading-order issues in the PDF.',
+        '','Guidebook Steps 3.1 & 4.5: delete empty boxes / empty &lt;P&gt; tags'));
+    }else{
+      out.push(C('empty','Empty boxes & stray paragraphs','warn','required',
+        `${issues.length} item(s) to clean up before export.`,
+        'Cleaning these in Word saves repeated deletion work in Acrobat\'s reading-order and tag-tree steps.',
+        issues.map(i=>'• '+i).join('<br>')+'<br><br><b>How to fix in Word:</b> delete empty text boxes; replace stacked blank lines with Paragraph → Spacing Before/After.',
+        'Guidebook Steps 3.1 & 4.5'));
+    }
+  })();
+
+  // R7 — Lists use real list formatting (Guidebook Step 4.6)
+  (function(){
+    const skipStyle = st => st && (/^TOC/i.test(st) || /^Caption$/i.test(st) || headingMap[st]!==undefined);
+    const properLists = paras.filter(p=>el(p,'numPr').length>0);
+    const bulletRe = /^([•‣●▪◦·∙*]\s+|[-–—]\s+|\(?\d+[.)]\s+|\(?[a-zA-Z][.)]\s+|[ivxIVX]+[.)]\s+)/;
+    const manual = paras.filter(p=>{
+      const st = paraStyle(p);
+      if(el(p,'numPr').length>0 || skipStyle(st)) return false;
+      return bulletRe.test(paraText(p).trim());
+    }).map(p=>paraText(p).trim());
+
+    if(manual.length===0){
+      out.push(C('list','Lists use real list formatting','pass','required',
+        properLists.length? `${properLists.length} list item(s), all using Word's list formatting.`
+                          : 'No manually-typed lists detected.',
+        'Lists built with Word\'s bullet/number tools tag correctly as &lt;L&gt;/&lt;LI&gt; in the PDF. Manually typed bullets or numbers do not, and must be re-tagged in Acrobat.',
+        '','Guidebook Step 4.6: lists correctly tagged and nested'));
+    }else{
+      out.push(C('list','Lists use real list formatting','warn','required',
+        `${manual.length} paragraph(s) look like manually-typed list items.`,
+        'These start with a bullet or number but don\'t use Word\'s list formatting, so they won\'t tag as a list in the PDF. (Numbered section headings and ToC entries are excluded.)',
+        'Select them and apply <b>Bullets</b> or <b>Numbering</b> from the Home ribbon so Word manages the list.',
+        'Guidebook Step 4.6: lists correctly tagged and nested',
+        manual.slice(0,12)));
+    }
+  })();
+
+  // R8 — Table structure: merged / nested cells (Guidebook Step 4.7)
+  (function(){
+    const tables = el(docDoc,'tbl');
+    if(tables.length===0) return; // table header-row check (Q2) already reports the no-tables case
+    const probs=[];
+    tables.forEach((t,i)=>{
+      const merges = el(t,'gridSpan').length;
+      const vmerges = el(t,'vMerge').filter(v=>(v.getAttributeNS(W,'val')||'restart')==='restart').length;
+      const nested = el(t,'tbl').filter(x=>x!==t).length;
+      const p=[];
+      if(merges) p.push(`${merges} merged cell(s) across columns`);
+      if(vmerges) p.push(`${vmerges} merged cell(s) across rows`);
+      if(nested) p.push(`${nested} nested table(s)`);
+      if(p.length) probs.push(`Table ${i+1}: ${p.join(', ')}`);
+    });
+    if(probs.length===0){
+      out.push(C('tblstruct','Table structure (merged/nested cells)','pass','required',
+        `${tables.length} table(s), all simple grids — no merged or nested cells.`,
+        'Simple rectangular tables tag cleanly. Merged and nested cells are the main cause of "Appropriate nesting / Tables" failures in Acrobat.',
+        '','Guidebook Step 4.7: tables'));
+    }else{
+      out.push(C('tblstruct','Table structure (merged/nested cells)','warn','required',
+        `${probs.length} table(s) use merged or nested cells.`,
+        'Merged and nested cells frequently cause Acrobat\'s "Appropriate nesting" and "Tables → Headers" failures and need manual tag fixes.',
+        'Where possible, simplify to a single rectangular grid with one header row, or split nested tables apart.',
+        'Guidebook Step 4.7 + Troubleshooting "Appropriate nesting / Headers failed"',
+        probs));
+    }
+  })();
+
+  /* ===========================================================
+     SECTION 2 — RECOMMENDED (WCAG 2.0 + alt-text quality)
+     =========================================================== */
+
+  // Q1 — Alt text quality
+  (function(){
+    if(images.length===0) return;
+    const flags = [];
+    images.forEach(im=>{
+      const a = im.descr || im.title;
+      if(!a) return; // already covered in R1
+      const probs=[];
+      if(/^(image|picture|graphic|photo|screenshot)\s+(of|showing)\b/i.test(a)) probs.push('starts with "image of…" (redundant for screen readers)');
+      if(/\b(figure|video|image|table|poll)\s*\d+\b/i.test(a)) probs.push('contains figure/video numbering (guidebook: avoid numbering)');
+      if(a.length>300) probs.push(`very long (${a.length} chars) — may cause cognitive overload`);
+      if(/[\r\n]/.test(a)) probs.push('contains line breaks — use commas between listed items instead');
+      if(a.length<8) probs.push('very short — may not convey enough information');
+      if(probs.length) flags.push({name:im.name, alt:a, probs});
+    });
+    if(flags.length===0){
+      out.push(C('altq','Alt text quality','pass','recommended',
+        'Alt text looks well-formed (no numbering, length or formatting issues).',
+        'No common alt-text problems detected across the images.',
+        '','Guidebook pp.10–15: what is good alt text'));
+    }else{
+      out.push(C('altq','Alt text quality','warn','recommended',
+        `${flags.length} image(s) have alt text worth reviewing.`,
+        'These are best-practice suggestions, not blockers. Review the wording:',
+        flags.map(f=>`<b>${f.name}</b>: ${f.probs.join('; ')}<br><span class="tag">${escapeHtml(f.alt.slice(0,140))}${f.alt.length>140?'…':''}</span>`).join('<br><br>'),
+        'Guidebook pp.10–15: good alt text (keep concise, no numbering, commas between listed items)'));
+    }
+  })();
+
+  // Q2 — Table header rows
+  (function(){
+    const tables = el(docDoc,'tbl');
+    if(tables.length===0){
+      out.push(C('tbl','Table header rows','pass','recommended',
+        'No tables in the document.',
+        'No tables were found, so there is nothing to tag with header rows.',
+        '','WCAG 1.3.1 / Acrobat "Tables → Headers"'));
+      return;
+    }
+    let noHeader = 0;
+    tables.forEach(t=>{
+      const firstRow = el(t,'tr')[0];
+      const hasTblHeader = firstRow && el(firstRow,'tblHeader').length>0;
+      // also accept first row marked as header via trPr
+      if(!hasTblHeader) noHeader++;
+    });
+    if(noHeader===0){
+      out.push(C('tbl','Table header rows','pass','recommended',
+        `${tables.length} table(s), all with a repeating header row.`,
+        'Header rows are set, so column headers will tag correctly for screen readers.',
+        '','WCAG 1.3.1'));
+    }else{
+      out.push(C('tbl','Table header rows','warn','recommended',
+        `${noHeader} of ${tables.length} table(s) have no designated header row.`,
+        'Without a header row, screen-reader users cannot associate data cells with column headings, and Acrobat flags "Tables → Headers".',
+        'Select the top row → Table Layout → <b>Repeat Header Rows</b>, and ensure Table Properties → Row → "Repeat as header row" is ticked.',
+        'WCAG 1.3.1 · Acrobat "Tables → Headers"'));
+    }
+  })();
+
+  // Q3 — Meaningful link text
+  (function(){
+    if(extLinks.length===0){ return; }
+    const vague = [];
+    extLinks.forEach(h=>{
+      const txt = el(h,'t').map(t=>t.textContent).join('').trim();
+      if(/^(click here|here|read more|more|link|this|this link)$/i.test(txt)) vague.push(txt||'(empty link)');
+    });
+    if(vague.length===0){
+      out.push(C('linktext','Meaningful link text','pass','recommended',
+        'Link text is descriptive (no "click here" style links).',
+        'Hyperlinks use meaningful text rather than generic phrases.',
+        '','WCAG 2.4.4'));
+    }else{
+      out.push(C('linktext','Meaningful link text','warn','recommended',
+        `${vague.length} link(s) use vague text like "click here".`,
+        'Screen-reader users often navigate by a list of links; generic text gives no context out of context.',
+        'Rewrite link text to describe the destination (e.g. "MIT Sloan sensemaking article" instead of "click here").',
+        'WCAG 2.4.4: Link Purpose', vague));
+    }
+  })();
+
+  // Q4 — Document language set
+  (function(){
+    const langMatch = (stylesXml||'').match(/w:lang[^>]*w:val="([^"]+)"/) || (settingsXml||'').match(/w:lang[^>]*w:val="([^"]+)"/);
+    if(langMatch){
+      out.push(C('lang','Document language set','pass','recommended',
+        `Primary language is set to "${langMatch[1]}".`,
+        'A document language is defined, so screen readers use correct pronunciation. (Acrobat "Primary language" will pass.)',
+        '','WCAG 3.1.1 · Acrobat "Primary language"'));
+    }else{
+      out.push(C('lang','Document language set','warn','recommended',
+        'No document language detected.',
+        'Without a set language, screen readers may mispronounce text and Acrobat flags "Primary language".',
+        'Review → Language → Set Proofing Language, and confirm under File → Info.',
+        'WCAG 3.1.1'));
+    }
+  })();
+
+  // Q5 — Document title (metadata / bookmarks)
+  (function(){
+    let title = '';
+    if(coreDoc){ const t = coreDoc.getElementsByTagName('dc:title')[0]; if(t) title=(t.textContent||'').trim(); }
+    if(title){
+      out.push(C('title','Document title in metadata','pass','recommended',
+        `Title set: "${title}".`,
+        'A document title is stored in the file properties — this becomes the PDF title and supports logical bookmarks.',
+        '','Guidebook PDF Step 2: bookmarks include the document title'));
+    }else{
+      out.push(C('title','Document title in metadata','warn','recommended',
+        'No document title set in file properties.',
+        'A descriptive title helps the PDF\'s Title metadata and bookmark logic. Acrobat may warn on "Title".',
+        'File → Info → Properties → set the <b>Title</b> field to the document title.',
+        'Guidebook PDF Step 2 / WCAG 2.4.2'));
+    }
+  })();
+
+  return out;
+}
+
+function C(id,title,status,section,summary,detail,fix,guide,list){
+  return {id,title,status,section,summary,detail:detail||'',fix:fix||'',guide:guide||'',list:list||null};
+}
+function escapeHtml(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function render(file, ctx, results){
+  $('results').style.display='block';
+
+  // filebar
+  const sizeKB = (file.size/1024).toFixed(0);
+  $('filebar').innerHTML =
+    `<span class="fn">📄 ${escapeHtml(file.name)}</span>
+     <span class="fm">${sizeKB} KB · ${ctx.media.length} media file(s)</span>
+     <span class="spacer"></span>
+     <button class="btn btn-yellow" onclick="window.print()">⬇ Download / Print report</button>
+     <button class="btn btn-ghost" onclick="location.reload()">Check another file</button>`;
+
+  const counts = {pass:0,warn:0,fail:0};
+  results.forEach(r=>counts[r.status]++);
+  const reqFails = results.filter(r=>r.section==='required'&&r.status==='fail').length;
+
+  // verdict
+  $('verdict').className = 'verdict '+(reqFails===0?'ok':'no');
+  $('verdict').innerHTML = reqFails===0
+    ? `<span class="big">✅</span><div>No required (guidebook) blockers detected. Review any amber items below, then export to PDF.</div>`
+    : `<span class="big">⛔</span><div><b>${reqFails} required issue(s)</b> should be fixed in Word before exporting to PDF.</div>`;
+
+  // scorecard
+  $('scorecard').innerHTML = `
+    ${scoreCard('total',results.length,'Checks run')}
+    ${scoreCard('pass',counts.pass,'Passed')}
+    ${scoreCard('warn',counts.warn,'Review')}
+    ${scoreCard('fail',counts.fail,'Failed')}`;
+
+  // store + draw report (default view = standard)
+  LAST_RESULTS = results;
+  setView('standard');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+let LAST_RESULTS = [];
+function setView(v){
+  $('viewToggle').innerHTML =
+    `<div class="vtoggle">
+       <button class="vbtn ${v==='standard'?'on':''}" onclick="setView('standard')">Standard report</button>
+       <button class="vbtn ${v==='steps'?'on':''}" onclick="setView('steps')">By guidebook step</button>
+     </div>`;
+  drawReport(v);
+}
+function drawReport(v){
+  const results = LAST_RESULTS;
+  if(v==='steps'){
+    $('report').innerHTML = stepwiseHTML(results);
+  }else{
+    const req = results.filter(r=>r.section==='required');
+    const rec = results.filter(r=>r.section==='recommended');
+    $('report').innerHTML =
+      sectionBlock('1 · Required — Guidebook','badge-req','From "Preparing a Word document" (Guidebook p.16). Fix these before exporting to PDF.',req) +
+      sectionBlock('2 · Recommended — WCAG & best practice','badge-rec','Best-practice and WCAG checks. Strongly advised, not hard blockers.',rec);
+    // attach expand toggles + open failures
+    document.querySelectorAll('.check-top').forEach(t=>{
+      t.addEventListener('click',()=>t.closest('.check').classList.toggle('open'));
+    });
+    document.querySelectorAll('.check.fail').forEach(c=>c.classList.add('open'));
+  }
+}
+
+/* ---------- Stepwise view: map checks onto the guidebook's own workflow ---------- */
+function byId(results,id){ return results.find(r=>r.id===id); }
+function miniRow(r){
+  const icon = r.status==='pass'?'✓':(r.status==='warn'?'!':'✕');
+  return `<div class="mini ${r.status}"><span class="mini-ic">${icon}</span><span class="mini-t">${r.title}</span><span class="mini-s">${r.summary}</span></div>`;
+}
+function stepCard(n,title,ids,results,manualNote){
+  const items = ids.map(id=>byId(results,id)).filter(Boolean);
+  let st;
+  if(manualNote) st='manual';
+  else if(items.length===0) st='na';
+  else if(items.some(i=>i.status==='fail')) st='fail';
+  else if(items.some(i=>i.status==='warn')) st='warn';
+  else st='pass';
+  const badge = {pass:'✓ Checked',warn:'! Review',fail:'✕ Fix in Word',manual:'⬡ Acrobat step',na:'— N/A'}[st];
+  return `<div class="stepcard ${st}">
+    <div class="step-head">
+      <div class="step-n">${n}</div>
+      <div class="step-title">${title}</div>
+      <div class="step-badge ${st}">${badge}</div>
+    </div>
+    ${items.map(miniRow).join('')}
+    ${manualNote?`<div class="manual-note">${manualNote}</div>`:''}
+  </div>`;
+}
+function stepwiseHTML(results){
+  let h = `<div class="step-intro">This view maps each automated check onto the guidebook's own workflow. The Word stage is fully checked here; <b>Steps 5–7 are Acrobat-only</b> and can't be automated from a Word file — they're listed so the team doesn't forget them after export.</div>`;
+
+  // Stage 1 — Preparing the Word document (p.16)
+  h += `<div class="section-head"><span class="badge badge-req">Word stage</span><h2>Preparing the Word document — Guidebook p.16</h2></div>`;
+  h += stepCard('✎','ToC items are clickable',['toc'],results);
+  h += stepCard('✎','All figures have alt text',['alt'],results);
+  h += stepCard('✎','Heading structure (H1 Module/Unit → H6)',['head'],results);
+  h += stepCard('✎','Captions use the caption function',['cap'],results);
+  h += stepCard('✎','Bibliography URLs are active links',['biblio'],results);
+
+  // Stage 2 — Ensuring the PDF is accessible & secure (Steps 1–7)
+  h += `<div class="section-head" style="margin-top:30px"><span class="badge badge-rec">PDF stage</span><h2>Ensuring the PDF is accessible &amp; secure — Steps 1–7</h2></div>`;
+  h += stepCard('1','Scan document for any glaring errors',['alt','head'],results);
+  h += stepCard('2','Bookmarks are logical &amp; include the document title',['toc','title'],results);
+  h += stepCard('3','Fix logical reading order (empty boxes, figures, tables)',['empty','alt','tblstruct'],results);
+  h += stepCard('4','Manually check the tag tree (ToC, captions, lists, tables, bibliography)',['head','cap','list','tbl','tblstruct','biblio'],results);
+  h += stepCard('5','Double-check reading order',[],results,
+    '<b>Acrobat only.</b> Re-verify the reading order in the Reading Order / Order panel after export. Getting the Word structure clean above means far less to fix here.');
+  h += stepCard('6','Run an Accessibility Check &amp; correct faults',[],results,
+    '<b>Acrobat only.</b> Run Acrobat\'s Accessibility Check. This pre-check is essentially a preview of those results — clearing the items above should leave few or no faults.');
+  h += stepCard('7','Secure the PDF',[],results,
+    '<b>Acrobat only.</b> Apply the document security/permissions per the guidebook. This cannot be done from Word.');
+  return h;
+}
+
+function scoreCard(cls,num,lbl){
+  return `<div class="score ${cls}"><div class="bar"></div><div class="num">${num}</div><div class="lbl">${lbl}</div></div>`;
+}
+function sectionBlock(title,badgeClass,desc,items){
+  const order={fail:0,warn:1,pass:2};
+  items=[...items].sort((a,b)=>order[a.status]-order[b.status]);
+  return `<div class="section-head">
+      <span class="badge ${badgeClass}">${badgeClass==='badge-req'?'Required':'Recommended'}</span>
+      <h2>${title}</h2></div>
+    <div class="desc" style="margin:-8px 0 12px;color:var(--ink-3);font-size:12.5px">${desc}</div>
+    ${items.map(checkCard).join('')}`;
+}
+function checkCard(r){
+  const icon = r.status==='pass'?'✓':(r.status==='warn'?'!':'✕');
+  let list='';
+  if(r.list && r.list.length){
+    list = '<ul>'+r.list.map(x=>`<li>${escapeHtml(String(x))}</li>`).join('')+'</ul>';
+  }
+  const hasDetail = r.detail||r.fix||list||r.guide;
+  return `<div class="check ${r.status}">
+    <div class="check-top">
+      <div class="check-icon">${icon}</div>
+      <div class="check-body">
+        <p class="check-title">${r.title}</p>
+        <p class="check-sub">${r.summary}</p>
+      </div>
+      ${hasDetail?'<div class="chev">▶</div>':''}
+    </div>
+    ${hasDetail?`<div class="check-detail">
+      ${r.detail?`<div style="font-size:13px;color:var(--ink-2);margin-bottom:8px">${r.detail}</div>`:''}
+      ${list}
+      ${r.fix?`<div class="fix"><b>How to fix in Word:</b> ${r.fix}</div>`:''}
+      ${r.guide?`<div class="guide-ref">📘 ${r.guide}</div>`:''}
+    </div>`:''}
+  </div>`;
+}
+</script>
+</body>
+</html>
