@@ -65,6 +65,8 @@ a:hover{text-decoration:underline}
 .btn-yellow:hover{background:#F2C033}
 .btn-ghost{background:transparent;color:var(--ink-2);border:1px solid var(--line)}
 .btn-ghost:hover{background:var(--bg-alt);border-color:var(--ink-3)}
+.btn-manual{background:#6B2FAE;color:#fff}
+.btn-manual:hover{background:#581f97}
 
 /* Scorecard */
 .scorecard{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
@@ -337,6 +339,13 @@ a:hover{text-decoration:underline}
   <img id="altZoom" alt="">
 </div>
 
+<div class="alt-overlay" id="manualOverlay" hidden onclick="if(event.target===this)closeManual()">
+  <div class="alt-box">
+    <div class="alt-head"><b id="manualTitle">Manual checklist</b><button class="x" onclick="closeManual()">✕</button></div>
+    <div id="manualBody" style="padding:16px 20px;max-height:74vh;overflow:auto"></div>
+  </div>
+</div>
+
 <script>
 /* ============================================================
    Accessibility Pre-Check for Word (.docx) storyboards
@@ -424,8 +433,12 @@ async function runPdfChecks(buf){
   const tagged = !!(mark && mark.Marked);
   const outline = await pdf.getOutline().catch(()=>null);
 
-  // walk struct trees across pages, collecting roles + figures
-  const roles = {}; const figures = [];
+  // walk struct trees across pages, collecting roles + figures + tables + empty tags + list structure
+  const roles = {}; const figures = []; const tableNodes = [];
+  let emptyTags = 0; const emptyEx = [];
+  let listL = 0, listLI = 0, liNoBody = 0, lNoLi = 0;
+  const headingSeq = [];
+  const EMPTY_ROLE = /^(P|Span|H[1-6]?|LBody|Lbl|TD|TH|Caption|Quote|Note|Title|Reference|TOCI)$/i;
   if(tagged){
     const maxP = Math.min(pdf.numPages, 60);
     for(let i=1;i<=maxP;i++){
@@ -433,11 +446,17 @@ async function runPdfChecks(buf){
       try{ const page=await pdf.getPage(i); st=await page.getStructTree(); }catch(e){ st=null; }
       (function walk(n){
         if(!n||typeof n!=='object') return;
-        if(n.role){
-          roles[n.role]=(roles[n.role]||0)+1;
-          if(/^Figure$/i.test(n.role)) figures.push({alt:(n.alt||'').trim()});
+        const role=n.role||''; const kids=n.children||[];
+        if(role){
+          roles[role]=(roles[role]||0)+1;
+          if(/^Figure$/i.test(role)) figures.push({alt:(n.alt||'').trim()});
+          if(/^Table$/i.test(role)) tableNodes.push(n);
+          if(EMPTY_ROLE.test(role) && kids.length===0){ emptyTags++; if(emptyEx.length<8) emptyEx.push(role+' (p'+i+')'); }
+          if(/^L$/i.test(role)){ listL++; if(!kids.some(c=>/^LI$/i.test(c.role||''))) lNoLi++; }
+          if(/^LI$/i.test(role)){ listLI++; if(!kids.some(c=>/^LBody$/i.test(c.role||''))) liNoBody++; }
+          const hm=role.match(/^H([1-6])$/i); if(hm) headingSeq.push(+hm[1]);
         }
-        (n.children||[]).forEach(walk);
+        kids.forEach(walk);
       })(st);
     }
   }
@@ -493,13 +512,146 @@ async function runPdfChecks(buf){
     }
   }
 
-  // P5 — Heading tags
-  out.push(C('pdf-headings','Heading tags', tagged?(headingCount>0?'pass':'warn'):'warn','recommended',
-    !tagged? 'Cannot assess — PDF is not tagged.' : (headingCount>0? `${headingCount} heading tag(s) found.` : 'No heading tags found.'),
-    headingCount>0? 'The document has tagged headings (H1–H6), giving screen-reader users a navigable outline.'
-                  : 'No H1–H6 tags were detected, so screen-reader users have no heading navigation. This usually means headings weren\'t styled in the source Word file.',
-    headingCount>0? '' : 'Fix at source: apply Word Heading styles and re-export, or re-tag headings in Acrobat.',
-    'WCAG 1.3.1 / 2.4.6 · Guidebook Step 4'));
+  // P4b — Table tagging (mirrors Acrobat's Tables category: Rows, TH and TD, Headers, Regularity)
+  (function(){
+    if(!tagged){
+      out.push(C('pdf-tables','Table tagging', 'warn','required',
+        'Can\'t assess tables — the PDF is not tagged.',
+        'Acrobat reports tables as failed (Rows, TH and TD, Headers, Regularity) when a PDF is untagged or its tables are mis-tagged. Once tagged, each table needs proper rows (TR), header cells tagged <TH> with a scope, a <TH>/<TD> tag on every cell, and the same number of columns in each row.',
+        'Tag the PDF first (re-export from Word using a real table with a header row, or auto-tag in Acrobat), then fix table tags in Acrobat’s Table Editor.',
+        'WCAG 1.3.1 · Acrobat Tables (Rows, TH and TD, Headers, Regularity)'));
+      return;
+    }
+    if(tableNodes.length===0){
+      out.push(C('pdf-tables','Table tagging','pass','required',
+        'No tagged tables found.',
+        'No <Table> tags were detected. If the PDF visually contains tables, they may be untagged or tagged as plain text — verify in Acrobat.',
+        '','WCAG 1.3.1 · Acrobat Tables'));
+      return;
+    }
+    let noRows=0, noHdr=0, irregular=0, badCells=0;
+    tableNodes.forEach(tb=>{
+      const trs=[]; (function f(n){ if(!n||typeof n!=='object')return; if(/^TR$/i.test(n.role||'')) trs.push(n); (n.children||[]).forEach(f); })(tb);
+      if(trs.length===0){ noRows++; return; }
+      let th=0; const counts=[];
+      trs.forEach(tr=>{ let c=0; (tr.children||[]).forEach(cell=>{ const r=cell.role||''; if(/^TH$/i.test(r)){th++;c++;} else if(/^TD$/i.test(r)){c++;} else if(r){badCells++;} }); counts.push(c); });
+      if(th===0) noHdr++;
+      if(counts.length>1 && new Set(counts).size>1) irregular++;
+    });
+    const issues=[];
+    if(noRows) issues.push(`${noRows} table(s) contain no rows (TR) — fails Acrobat "Rows".`);
+    if(noHdr) issues.push(`${noHdr} of ${tableNodes.length} table(s) have no header cells (TH) — header cells are tagged as data cells. Fails Acrobat "Headers" and "TH and TD".`);
+    if(irregular) issues.push(`${irregular} table(s) have rows with differing column counts — fails Acrobat "Regularity" (merged cells need Row/Column Span set).`);
+    if(badCells) issues.push(`${badCells} cell(s) are not tagged as <TH> or <TD> — fails Acrobat "TH and TD".`);
+    if(issues.length===0){
+      out.push(C('pdf-tables','Table tagging (rows, headers, cells, regularity)','pass','required',
+        `${tableNodes.length} tagged table(s) look well-structured.`,
+        'Tables have rows (TR), at least one header cell (TH), every cell tagged TH/TD, and uniform column counts. (A table Summary, if required, must still be checked in Acrobat.)',
+        '','WCAG 1.3.1 · Acrobat Tables (Rows, TH and TD, Headers, Regularity)'));
+    }else{
+      out.push(C('pdf-tables','Table tagging (rows, headers, cells, regularity)','fail','required',
+        `${tableNodes.length} tagged table(s): ${issues.length} structural problem(s) — the same items Acrobat lists under "Tables".`,
+        'These mirror Adobe Acrobat’s Tables checks:<br>'+issues.map(x=>'• '+x).join('<br>'),
+        'In Acrobat → Tags / Table Editor: tag the header row as <TH> and set its Scope (Row/Column); give every cell a <TH>/<TD> tag; ensure each row has the same number of cells (use Row/Column Span for merged cells). Best fixed at the Word source by using a real table with a designated header row.',
+        'WCAG 1.3.1 · Acrobat Tables (Rows, TH and TD, Headers, Regularity)'));
+    }
+  })();
+
+  // P4c — Empty / blank tags
+  (function(){
+    if(!tagged){
+      out.push(C('pdf-emptytags','Empty / blank tags','warn','required',
+        'Can\'t assess — the PDF is not tagged.',
+        'Acrobat flags empty tags (blank <P>, <Span>, empty table cells, etc.) — they make screen readers announce nothing or pause oddly. They can only be assessed once the PDF is tagged.',
+        'Tag the PDF, then delete empty tags in Acrobat\'s Tags panel. Best avoided at source by removing blank paragraphs/lines before export.',
+        'WCAG 1.3.1 · Acrobat “blank tags”'));
+      return;
+    }
+    if(emptyTags===0){
+      out.push(C('pdf-emptytags','Empty / blank tags','pass','required',
+        'No empty content tags found.',
+        'No blank <P>/<Span>/cell tags were detected in the tag tree.',
+        '','WCAG 1.3.1'));
+    }else{
+      out.push(C('pdf-emptytags','Empty / blank tags','fail','required',
+        `${emptyTags} empty content tag(s) found.`,
+        'These tags contain no text or content, so screen readers announce nothing for them (often from blank lines/spaces carried over from Word). Examples: '+emptyEx.join(', ')+'.',
+        'In Acrobat → Tags, delete the empty tags. At source, remove blank paragraphs and stray spaces before exporting.',
+        'WCAG 1.3.1 · Acrobat “blank tags”'));
+    }
+  })();
+
+  // P4d — List markup
+  (function(){
+    if(!tagged){
+      out.push(C('pdf-lists','List markup','warn','recommended',
+        'Can\'t assess — the PDF is not tagged.',
+        'Lists should be tagged <L> → <LI> → <LBody> (with optional <Lbl>). Acrobat flags missing or malformed list markup. This can only be assessed once the PDF is tagged.',
+        'Tag the PDF; ensure bulleted/numbered content uses real list tags. Best fixed at source by using Word\'s bullet/number lists.',
+        'WCAG 1.3.1 · Acrobat Lists'));
+      return;
+    }
+    if(listL===0){
+      out.push(C('pdf-lists','List markup','pass','recommended',
+        'No tagged lists found.',
+        'No <L> list tags were detected. If the PDF contains bulleted or numbered content, confirm it is tagged as a list (not plain paragraphs).',
+        '','WCAG 1.3.1 · Acrobat Lists'));
+      return;
+    }
+    const issues=[];
+    if(lNoLi>0) issues.push(`${lNoLi} list(s) <L> have no list items <LI>.`);
+    if(liNoBody>0) issues.push(`${liNoBody} of ${listLI} list item(s) <LI> have no <LBody> — list text isn’t wrapped correctly.`);
+    if(issues.length===0){
+      out.push(C('pdf-lists','List markup','pass','recommended',
+        `${listL} list(s) with ${listLI} item(s) are well-structured.`,
+        'Lists use proper <L> → <LI> → <LBody> nesting.',
+        '','WCAG 1.3.1 · Acrobat Lists'));
+    }else{
+      out.push(C('pdf-lists','List markup', lNoLi>0?'fail':'warn','recommended',
+        `${listL} list(s): ${issues.length} structure issue(s).`,
+        'Acrobat checks that lists nest as <L> → <LI> → <LBody>:<br>'+issues.map(x=>'• '+x).join('<br>'),
+        'In Acrobat → Tags, fix the list nesting (each <LI> should contain an <LBody>). Best fixed at source using Word\'s built-in bullet/number lists.',
+        'WCAG 1.3.1 · Acrobat Lists'));
+    }
+  })();
+
+  // P5 — Heading structure (presence + H1 + nesting order)
+  (function(){
+    if(!tagged){
+      out.push(C('pdf-headings','Heading structure','warn','required',
+        'Can\'t assess — the PDF is not tagged.',
+        'Once tagged, the document should have a single <H1> top-level heading and no skipped levels. Acrobat flags this under Headings.',
+        'Tag the PDF; apply Word Heading styles at source (H1 = title) and re-export.',
+        'WCAG 1.3.1 / 2.4.6 · Acrobat Headings'));
+      return;
+    }
+    if(headingSeq.length===0){
+      out.push(C('pdf-headings','Heading structure','fail','required',
+        'No heading tags (H1–H6) found.',
+        'No headings are tagged, so screen-reader users have no outline to navigate. The title and section headings are likely tagged as plain <P> paragraphs (a common issue — e.g. a cover “MODULE 1 UNIT 1” tagged <P> instead of <H1>).',
+        'Apply Word Heading styles at source (H1 = the module/unit or document title, then H2, H3…) and re-export; or re-tag in Acrobat.',
+        'WCAG 1.3.1 / 2.4.6 · Acrobat Headings'));
+      return;
+    }
+    const hasH1=headingSeq.includes(1); const first=headingSeq[0];
+    const skips=[]; let prev=0; headingSeq.forEach(l=>{ if(prev && l>prev+1) skips.push('H'+prev+'→H'+l); prev=l; });
+    const issues=[];
+    if(!hasH1) issues.push('No <H1> — the top-level/title heading isn’t tagged as H1 (it’s often left as <P>, like a cover “MODULE 1 UNIT 1”).');
+    else if(first>1) issues.push('Headings start at <H'+first+'>, not <H1>.');
+    if(skips.length) issues.push('Skipped heading levels: '+[...new Set(skips)].join(', ')+'.');
+    if(issues.length===0){
+      out.push(C('pdf-headings','Heading structure','pass','required',
+        `${headingSeq.length} heading(s) with a logical hierarchy (starts at H1, no skipped levels).`,
+        'Headings give screen-reader users a navigable outline and are correctly nested.',
+        '','WCAG 1.3.1 / 2.4.6 · Acrobat Headings'));
+    }else{
+      out.push(C('pdf-headings','Heading structure','fail','required',
+        `${headingSeq.length} heading(s) found, but the hierarchy has ${issues.length} issue(s).`,
+        'Detected order: '+headingSeq.map(l=>'H'+l).join(' › ')+'<br>'+issues.map(x=>'• '+x).join('<br>'),
+        'Fix at source: make the document/cover title <H1>, then use H2, H3… in order without skipping. Apply Word Heading styles and re-export, or re-tag headings in Acrobat.',
+        'WCAG 1.3.1 / 2.4.6 · Acrobat Headings'));
+    }
+  })();
 
   // P6 — Reading-order structure present
   out.push(C('pdf-readorder','Reading-order structure', tagged&&structNodes>3?'pass':'warn','recommended',
@@ -1014,11 +1166,43 @@ function runChecks(ctx){
 
   // Manual WCAG checks (tester judgment — not detectable from the file)
   const M=(id,title,summary,detail,fix,guide)=>out.push(C(id,title,'warn','recommended',summary,detail,fix,guide,null,'manual'));
-  M('contrast','Colour contrast (manual)',
-    'Verify text contrast ≥ 4.5:1 (3:1 for large text).',
-    'The tool can\'t reliably judge contrast from the file. Visually check body text, headings, captions and any coloured text against their background.',
-    'Use a contrast checker (e.g. TPGi Colour Contrast Analyser); darken text or lighten background until it passes 4.5:1.',
-    'WCAG 1.4.3 Contrast (Minimum)');
+
+  // Colour contrast — computed from explicit run colour vs background (highlight / shading / white)
+  (function(){
+    let checked=0; const fails=[];
+    el(docDoc,'r').forEach(r=>{
+      const rpr=el(r,'rPr')[0]; if(!rpr) return;
+      const colorEl=el(rpr,'color')[0]; const color=colorEl?colorEl.getAttributeNS(W,'val'):null;
+      if(!color || color==='auto') return;
+      const text=el(r,'t').map(x=>x.textContent).join(''); if(!text.trim()) return;
+      let bg='FFFFFF';
+      const hl=el(rpr,'highlight')[0]; if(hl){ const v=hl.getAttributeNS(W,'val'); if(HLMAP[v]) bg=HLMAP[v]; }
+      const shd=el(rpr,'shd')[0]; if(shd){ const f=shd.getAttributeNS(W,'fill'); if(f&&f!=='auto') bg=f; }
+      const szEl=el(rpr,'sz')[0]; const pt=szEl?parseInt(szEl.getAttributeNS(W,'val'),10)/2:11;
+      const need=(pt>=18||(pt>=14&&el(rpr,'b').length>0))?3:4.5;
+      const cr=wcagRatio(color,bg); checked++;
+      if(cr+0.049<need) fails.push({color:color.replace('#',''),bg,cr:cr.toFixed(2),need,text:text.trim().slice(0,40)});
+    });
+    if(checked===0){
+      out.push(C('contrast','Colour contrast','warn','recommended',
+        'No explicitly-coloured text to auto-check — verify contrast manually.',
+        'The tool computes contrast for text that has an explicit colour set. This document uses default/theme colours (usually black on white). Still confirm any coloured text, headings, and text over shaded or coloured backgrounds meet 4.5:1 (3:1 for large text).',
+        'Use a contrast checker (e.g. TPGi Colour Contrast Analyser).',
+        'WCAG 1.4.3 Contrast (Minimum)',null,'manual'));
+    }else if(fails.length===0){
+      out.push(C('contrast','Colour contrast','pass','recommended',
+        `Checked ${checked} coloured text run(s) — all meet the contrast minimum.`,
+        'Text with an explicit colour passes WCAG contrast against its background. Default/theme-coloured text and text inside images aren\'t auto-checked — confirm those visually.',
+        '','WCAG 1.4.3 Contrast (Minimum)',null,'auto'));
+    }else{
+      out.push(C('contrast','Colour contrast','fail','recommended',
+        `${fails.length} of ${checked} coloured text run(s) fall below the contrast minimum.`,
+        'Computed text-colour vs background contrast is below WCAG (4.5:1 normal text, 3:1 large text):',
+        'Darken the text or lighten the background until it passes; confirm with a contrast checker.',
+        'WCAG 1.4.3 Contrast (Minimum)',
+        fails.slice(0,12).map(f=>`"${f.text}" — text #${f.color} on bg #${f.bg} = ${f.cr}:1 (needs ${f.need}:1)`),'auto'));
+    }
+  })();
   M('colour-alone','Information not by colour alone (manual)',
     'Verify meaning is never conveyed by colour alone.',
     'Check that anything indicated by colour (e.g. "items in red are required", coloured status, links distinguished only by colour) also has text, an icon, or underline.',
@@ -1057,6 +1241,11 @@ function C(id,title,status,section,summary,detail,fix,guide,list,mode){
   return {id,title,status,section,summary,detail:detail||'',fix:fix||'',guide:guide||'',list:list||null,mode:mode||'auto'};
 }
 function escapeHtml(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// WCAG colour-contrast helpers (used by the docx colour-contrast check)
+const HLMAP={yellow:'FFFF00',green:'00FF00',cyan:'00FFFF',magenta:'FF00FF',blue:'0000FF',red:'FF0000',darkBlue:'000080',darkCyan:'008080',darkGreen:'008000',darkMagenta:'800080',darkRed:'800000',darkYellow:'808000',darkGray:'808080',lightGray:'C0C0C0',black:'000000',white:'FFFFFF'};
+function wcagLum(hex){ hex=(hex||'').replace('#',''); if(hex.length!==6) return 1; const v=hex.match(/.{2}/g).map(h=>{ let c=parseInt(h,16)/255; return c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4); }); return 0.2126*v[0]+0.7152*v[1]+0.0722*v[2]; }
+function wcagRatio(a,b){ const la=wcagLum(a), lb=wcagLum(b); return (Math.max(la,lb)+0.05)/(Math.min(la,lb)+0.05); }
 
 /* ============================================================
    DASHBOARD + PER-FILE REPORT
@@ -1308,8 +1497,12 @@ async function processTestFiles(fileList){
 
 function tTally(auto){ const c={pass:0,warn:0,fail:0}; (auto||[]).forEach(r=>c[r.status]++); return c; }
 function renderTestChips(){
+  const curRec=TFILES[TCUR]; const plan=curRec?TYPE_TO_PLAN[curRec.type]:null;
+  const mcat=(plan&&window.TESTPLAN_CATALOG&&window.TESTPLAN_CATALOG[plan])||[];
+  const mcount=mcat.filter(x=>x.mode==='manual').length;
   $('batchbar2').innerHTML=`<span class="fn">${TFILES.length} file${TFILES.length>1?'s':''}</span>
     <span class="spacer"></span>
+    <button class="btn btn-manual" onclick="showManualChecklist()">📋 Manual checklist${mcount?(' ('+mcount+')'):''}</button>
     <button class="btn btn-ghost" onclick="showAltTable('test')">🖼 Alt-text table</button>
     <button class="btn btn-yellow" onclick="window.print()">⬇ Download / Print</button>
     <button class="btn btn-ghost" onclick="location.reload()">Check other files</button>`;
@@ -1337,7 +1530,7 @@ function openTestReport(i){
   }
   const c=tTally(rec.auto);
   const catNote = cat.length
-    ? `<div class="step-intro">Showing the <b>${TYPE_LABEL[rec.type]}</b> test plan: <b>${autoCases.length}</b> case(s) are auto-checkable (reflected in Automated checks below) and <b>${manual.length}</b> require manual testing (listed as a checklist with the exact procedure).</div>`
+    ? `<div class="step-intro">Showing the <b>${TYPE_LABEL[rec.type]}</b> test plan: <b>${autoCases.length}</b> case(s) are auto-checkable (reflected in Automated checks below) and <b>${manual.length}</b> require manual testing — open them with the <b>📋 Manual checklist</b> button at the top.</div>`
     : `<div class="step-intro">Automated checks for this <b>${TYPE_LABEL[rec.type]}</b> file are below. (Test-plan catalog not loaded, so the manual checklist is unavailable — keep <code>Accessibility-PreCheck-testplans.js</code> in the same folder as this page.)</div>`;
 
   const auto=rec.auto||[];
@@ -1353,17 +1546,27 @@ function openTestReport(i){
      </div>`;
   html+=sectionBlock('Automated checks — required','badge-req','Issues the tool detected directly from the file.',req);
   if(rec2.length) html+=sectionBlock('Automated checks — recommended','badge-rec','Best-practice items detected from the file.',rec2);
-  if(manual.length){
-    html+=`<div class="section-head" style="margin-top:30px"><span class="badge badge-rec" style="background:#F3EAFB;color:#6b2fae">Manual</span><h2>Manual checks from the ${TYPE_LABEL[rec.type]} test plan</h2></div>
-      <div class="desc" style="margin:-8px 0 12px;color:var(--ink-3);font-size:12.5px">These require a tester (screen reader / visual judgment). Each shows its WCAG reference and the exact procedure from the plan.</div>`;
-    html+=manual.map(manualCard).join('');
-  }
   $('detail2').innerHTML=html;
   // bind expanders
   $('detail2').querySelectorAll('.check-top').forEach(t=>t.addEventListener('click',()=>t.closest('.check').classList.toggle('open')));
   $('detail2').querySelectorAll('.check.fail').forEach(c=>c.classList.add('open'));
-  $('detail2').querySelectorAll('.mcard-top').forEach(t=>t.addEventListener('click',()=>t.closest('.mcard').classList.toggle('open')));
+  // refresh the Manual-checklist button count for this file
+  renderTestChips();
 }
+
+function showManualChecklist(){
+  const rec=TFILES[TCUR]; if(!rec) return;
+  const plan=TYPE_TO_PLAN[rec.type];
+  const cat=(window.TESTPLAN_CATALOG&&window.TESTPLAN_CATALOG[plan])||[];
+  const manual=cat.filter(x=>x.mode==='manual');
+  $('manualTitle').textContent=`Manual checklist — ${TYPE_LABEL[rec.type]} test plan`;
+  $('manualBody').innerHTML = manual.length
+    ? `<div style="margin-bottom:14px;font-size:13px;color:var(--ink-2)">${manual.length} check(s) for <b>${escapeHtml(rec.name)}</b> that need a tester (screen reader / visual judgment). Each shows its WCAG reference and the exact procedure from the plan. Click to expand.</div>`+manual.map(manualCard).join('')
+    : `<div style="padding:16px;color:var(--ink-3)">No manual checklist available. Keep <code>Accessibility-PreCheck-testplans.js</code> in the same folder as this page.</div>`;
+  $('manualBody').querySelectorAll('.mcard-top').forEach(t=>t.addEventListener('click',()=>t.closest('.mcard').classList.toggle('open')));
+  $('manualOverlay').hidden=false;
+}
+function closeManual(){ $('manualOverlay').hidden=true; }
 
 function manualCard(m){
   const wcag=m.wcag?`<span class="wcag-tag">${escapeHtml(m.wcag)}</span>`:'';
